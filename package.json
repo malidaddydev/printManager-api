@@ -1,12 +1,13 @@
 {
   "name": "express-prisma-crud",
   "version": "1.0.0",
-  "main": "index.js",
+ "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "prisma:migrate": "npx prisma migrate dev",
-    "prisma:studio": "npx prisma studio"
+    "prisma:studio": "npx prisma studio",
+    "prisma:generate": "npx prisma generate"
   },
   "keywords": [],
   "author": "",
