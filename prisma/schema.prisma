@@ -7,15 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  price       Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime
-}
-
 model users {
   id            Int       @id @default(autoincrement())
   username      String    @unique(map: "username") @db.VarChar(50)
@@ -30,4 +21,42 @@ model users {
   last_login_at DateTime? @db.Timestamp(0)
   is_manager    Boolean?  @default(false)
   is_member     Boolean?  @default(false)
+}
+
+model customer {
+  id      Int     @id @default(autoincrement())
+  name    String
+  email   String
+  mobile  String
+  mobile2 String?
+  company String?
+  address String?
+  order   order[]
+}
+
+model order {
+  id                  Int         @id @default(autoincrement())
+  customerId          Int
+  serviceType         String
+  deliveryDate        DateTime
+  specialInstructions String?
+  createdAt           DateTime    @default(now())
+  customer            customer    @relation(fields: [customerId], references: [id], map: "Order_customerId_fkey")
+  orderitem           orderitem[]
+
+  @@index([customerId], map: "Order_customerId_fkey")
+}
+
+model orderitem {
+  id         Int    @id @default(autoincrement())
+  orderId    Int
+  product    String
+  quantity   Int
+  size       String
+  color      String
+  unitPrice  Float
+  totalPrice Float
+  order      order  @relation(fields: [orderId], references: [id], map: "OrderItem_orderId_fkey")
+
+  @@index([orderId], map: "OrderItem_orderId_fkey")
 }

@@ -4,6 +4,7 @@ const productRoutes = require('./routes/product.routes');
 const usersRoutes = require('./routes/users.routes');
 const authRoutes = require('./routes/auth.routes');
 const {authenticate} = require('./middlewares/auth.middleware');
+const cors = require('cors');
 
 
 const path = require('path');
@@ -12,6 +13,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cors());
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
@@ -20,7 +22,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/products', productRoutes);
 app.use('/api/users', authenticate, usersRoutes);
 app.use('/api/auth', authRoutes);
-
+// app.use('/api/customers', customerRoutes);
+// app.use('/api/orders', orderRoutes);
 
 // Redirect root to index.html
 app.get('/', (req, res) => {
