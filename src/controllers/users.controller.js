@@ -9,29 +9,29 @@ exports.createUser=async (req,res) => {
         const { username,
             email,
             password,
-            first_name,
-            last_name,
-            is_active,
-            is_admin,
-            is_manager,
-            is_member}=req.body;
+            firstName,
+            lastName,
+            isActive,
+            isAdmin,
+            isManager,
+            isMember}=req.body;
             const hashedPassword=await bcrypt.hash(password,10)
-        const user= await prisma.users.create({
+        const user= await prisma.user.create({
             data:{
                 username,
                 email,
-                password_hash:hashedPassword,
-                first_name,
-                last_name,
-                is_active,
-                is_admin,
-                is_manager,
-                is_member
+                passwordHash:hashedPassword,
+                firstName,
+                lastName,
+                isActive,
+                isAdmin,
+                isManager,
+                isMember
 
 
             },
         })
-        const {password_hash,...userData}=user
+        const {passwordHash,...userData}=user
         res.status(201).json(userData)
     } catch (error) {
          res.status(400).json({ error: error.message });
@@ -41,7 +41,7 @@ exports.createUser=async (req,res) => {
 
 exports.getAllUser=async (req,res) => {
     try {
-        const allUsers=await prisma.users.findMany();
+        const allUsers=await prisma.user.findMany();
         res.status(201).json(allUsers)
     } catch (error) {
          res.status(400).json({ error: error.message });
