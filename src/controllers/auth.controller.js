@@ -11,9 +11,9 @@ const generateToken = (user) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      is_admin: user.is_admin,
-      is_manager: user.is_manager,
-      is_member: user.is_member
+      is_admin: user.isAdmin,
+      is_manager: user.isManager,
+      is_member: user.isMember
     },
     process.env.JWT_SECRET,
     { expiresIn: '30d' }
@@ -25,7 +25,7 @@ exports.loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // 1. Check if user exists
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email }
     });
 
@@ -34,7 +34,7 @@ exports.loginUser = async (req, res) => {
     }
 
     // 2. Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -43,9 +43,9 @@ exports.loginUser = async (req, res) => {
     const token = generateToken(user);
 
     // 4. Update last login time
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
-      data: { last_login_at: new Date() }
+      data: { lastLoginAt: new Date() }
     });
 
     // 5. Return user data (without password) and token
