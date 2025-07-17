@@ -62,18 +62,18 @@ exports.loginUser = async (req, res) => {
 
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password, first_name, last_name } = req.body;
+    const { username, email, password, firstName, lastName } = req.body;
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.users.create({
+    const user = await prisma.user.create({
       data: {
         username,
         email,
-        password_hash: hashedPassword,
-        first_name,
-        last_name,
+        passwordHash: hashedPassword,
+        firstName,
+        lastName,
         // Default values will be applied from Prisma schema
       },
     });
