@@ -60,33 +60,3 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-exports.registerUser = async (req, res) => {
-  try {
-    const { username, email, password, firstName, lastName } = req.body;
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        passwordHash: hashedPassword,
-        firstName,
-        lastName,
-        // Default values will be applied from Prisma schema
-      },
-    });
-
-    const { password_hash, ...userData } = user;
-    const token = generateToken(user);
-
-    res.status(201).json({
-      ...userData,
-      token
-    });
-
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
