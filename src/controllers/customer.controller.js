@@ -16,6 +16,22 @@ exports.createCustomer=async (req, res) => {
     res.status(400).json({error:error.message})
   }
 }
+exports.updateCustomer=async (req, res) => {
+  try {
+    const {id}=req.params.id
+    const {name,company,mobile,address,email}=req.body
+    const updatedCustomers=await prisma.customer.update({
+      where:{id:Number(id)},
+      data:{
+        name,email,mobile,company,address
+      }
+
+    })
+    res.status(201).json(updatedCustomers)
+  } catch (error) {
+    res.status(400).json({error:error.message})
+  }
+}
 
 
 exports.getAllCustomers=async(req,res)=>{
