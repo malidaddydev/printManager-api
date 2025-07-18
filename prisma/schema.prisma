@@ -31,7 +31,7 @@ model Customer {
   mobile2  String?  @db.VarChar(20)
   company String? @db.VarChar(255)
   address String? @db.Text
-  orders  Order[]
+  orders  Order[] 
 }
 
 model Order {
@@ -45,7 +45,7 @@ model Order {
   totalAmount         Float           @db.Float
   specialInstructions String?         @db.Text
   createdDate         DateTime        @default(now()) @db.DateTime(0)
-  customer            Customer        @relation(fields: [customerId], references: [id])
+  customer            Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   comments            OrderComment[]
   files               OrderFile[]
   items               OrderItem[]
