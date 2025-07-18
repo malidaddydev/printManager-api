@@ -34,22 +34,21 @@ model Customer {
 }
 
 model Order {
-  id                  Int      @id @default(autoincrement())
+  id                  Int             @id @default(autoincrement())
   customerId          Int
-  orderType           String   @db.VarChar(100)
-  currentState        String   @db.VarChar(100)
-  overallStatus       String   @db.VarChar(100)
-  specifications      String?  @db.Text
-  deliveryDate        DateTime @db.DateTime(0)
-  totalAmount         Float    @db.Float
-  specialInstructions String?  @db.Text
-  createdDate         DateTime @default(now()) @db.DateTime(0)
-
-  customer       Customer        @relation(fields: [customerId], references: [id])
-  comments       OrderComment[]
-  files          OrderFile[]
-  items          OrderItem[]
-  workflowStates WorkflowState[]
+  orderType           String          @db.VarChar(100)
+  currentState        String          @db.VarChar(100)
+  overallStatus       String          @db.VarChar(100)
+  specifications      String?         @db.Text
+  deliveryDate        DateTime        @db.DateTime(0)
+  totalAmount         Float           @db.Float
+  specialInstructions String?         @db.Text
+  createdDate         DateTime        @default(now()) @db.DateTime(0)
+  customer            Customer        @relation(fields: [customerId], references: [id])
+  comments            OrderComment[]
+  files               OrderFile[]
+  items               OrderItem[]
+  workflowStates      WorkflowState[]
 
   @@index([customerId])
 }
@@ -61,8 +60,7 @@ model OrderComment {
   commentType String?   @db.VarChar(20)
   createdBy   String?   @db.VarChar(100)
   createdAt   DateTime? @db.DateTime(0)
-
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Restrict)
 
   @@index([orderId])
 }
@@ -76,8 +74,7 @@ model OrderFile {
   uploadDate   DateTime? @db.DateTime(0)
   isApproved   Boolean?
   approvalDate DateTime? @db.DateTime(0)
-
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Restrict)
 
   @@index([orderId])
 }
@@ -88,14 +85,13 @@ model OrderItem {
   productId      Int
   serviceType    String  @db.VarChar(100)
   quantity       Int
-  unitPrice      Float   @db.Float
+  unitPrice      Float?   @db.Float
   totalPrice     Float   @db.Float
   size           String? @db.VarChar(50)
   color          String? @db.VarChar(100)
   specifications String? @db.Text
-
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Restrict)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  product        Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Restrict)
 
   @@index([orderId])
   @@index([productId])
@@ -110,16 +106,15 @@ model Product {
 }
 
 model WorkflowState {
-  id           Int      @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   orderId      Int
-  stateName    String   @db.VarChar(100)
-  name         String   @db.VarChar(255)
-  assignedTeam String   @db.VarChar(100)
-  status       String   @default("Pending") @db.VarChar(50)
+  stateName    String  @db.VarChar(100)
+  name         String  @db.VarChar(255)
+  assignedTeam String  @db.VarChar(100)
+  status       String  @default("Pending") @db.VarChar(50)
   dueDate      String? @db.VarChar(255)
-  colorCode    String?   @db.VarChar(20)
-
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  colorCode    String? @db.VarChar(20)
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Restrict)
 
   @@index([orderId])
 }

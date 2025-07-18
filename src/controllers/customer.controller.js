@@ -20,8 +20,24 @@ exports.createCustomer=async (req, res) => {
 
 exports.getAllCustomers=async(req,res)=>{
   try {
-    const allCustomers=await prisma.customer.findmany()
+    const allCustomers=await prisma.customer.findMany()
     res.status(201).json(allCustomers)
+  } catch (error) {
+    res.status(400).json({error:error.message})
+  }
+}
+
+
+exports.Customer=async(req,res)=>{
+  const custId=parseInt(req.params.id)
+  
+  try {
+    const Customers=await prisma.customer.findUnique(
+      {
+        where:{id:custId}
+      }
+    )
+    res.status(201).json(Customers)
   } catch (error) {
     res.status(400).json({error:error.message})
   }

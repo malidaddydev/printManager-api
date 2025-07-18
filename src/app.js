@@ -22,7 +22,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 // Routes
 // app.use('/api/products', productRoutes);
 // app.use('/api/users', authenticate, usersRoutes);
-
+// app.use('/api/users', authenticate, usersRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);

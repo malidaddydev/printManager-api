@@ -3,21 +3,38 @@ const prisma = new PrismaClient();
 
 const workflowTemplates = {
 "Sublimation": [
-{ state: "mockup", name: "Mockup Creation", team: "design", due: "3days" },
-{ state: "printout", name: "Print Production", team: "sublimation", due: "6days" },
-{ state: "production", name: "Final Production", team: "production", due: "2days" }
+{ state: "mockup", name: "Mockup Creation", team: "design", due: "3days", color:'red' },
+{ state: "printout", name: "Print Production", team: "sublimation", due: "6days", color:'yellow' },
+{ state: "production", name: "Final Production", team: "production", due: "2days", color:'green' }
 ],
 "Embroidery": [
-{ state: "design", name: "Design Setup", team: "design", due: "2days" },
-{ state: "embroidery", name: "Embroidery", team: "embroidery", due: "4days" },
-{ state: "finishing", name: "Finishing", team: "production", due: "1day" }
+{ state: "design", name: "Design Setup", team: "design", due: "2days", color:'red' },
+{ state: "embroidery", name: "Embroidery", team: "embroidery", due: "4days", color:'yellow' },
+{ state: "finishing", name: "Finishing", team: "production", due: "1day", color:'green' }
 ],
 "DTF": [
-{ state: "design", name: "Design Prep", team: "design", due: "2days" },
-{ state: "printing", name: "DTF Printing", team: "dtf", due: "3days" },
-{ state: "application", name: "Heat Application", team: "production", due: "1day" }
+{ state: "design", name: "Design Prep", team: "design", due: "2days", color:'red' },
+{ state: "printing", name: "DTF Printing", team: "dtf", due: "3days", color:'yellow' },
+{ state: "application", name: "Heat Application", team: "production", due: "1day", color:'green' }
 ]
 };
+
+
+
+
+
+
+
+
+// create order
+
+
+
+
+
+
+
+
 
 exports.createOrder = async (req, res) => {
   try {
@@ -64,24 +81,39 @@ exports.createOrder = async (req, res) => {
 
     // Step 4: Create Workflow States
     const createdAt = new Date(orderData.createdDate);
-    const states = await Promise.all(
-      workflowTemplates[order.order_type].map((step, index) => {
-        // const dueDate = new Date(createdAt);
-        // dueDate.setDate(dueDate.getDate() + step.dueDays);
-
-        return prisma.workflowState.create({
+    const firstState=workflowTemplates[order.order_type][0]
+    const state= await prisma.workflowState.create({
           data: {
             orderId: orderData.id,
-            stateName: step.state,
-            name: step.name,
-            assignedTeam: step.team,
+            stateName: firstState.state,
+            name: firstState.name,
+            assignedTeam: firstState.team,
             status: "Pending",
-            // dueDate,
-            colorCode: step.color
+            dueDate:firstState.due,
+            colorCode: firstState.color
           }
         });
-      })
-    );
+
+    // const states = await Promise.all(
+      
+      
+    //   workflowTemplates[order.order_type].map((step, index) => {
+    //     // const dueDate = new Date(createdAt);
+    //     // dueDate.setDate(dueDate.getDate() + step.dueDays);
+
+    //     return prisma.workflowState.create({
+    //       data: {
+    //         orderId: orderData.id,
+    //         stateName: step.state,
+    //         name: step.name,
+    //         assignedTeam: step.team,
+    //         status: "Pending",
+    //         dueDate,
+    //         colorCode: step.color
+    //       }
+    //     });
+    //   })
+    // );
 
     // Step 5: Return formatted response
     return res.status(201).json({
@@ -108,14 +140,14 @@ exports.createOrder = async (req, res) => {
           color: i.color,
           specifications: i.specifications
         })),
-        workflow_states: states.map(s => ({
-          state_name: s.stateName,
-          name: s.name,
-          assigned_team: s.assignedTeam,
-          status: s.status,
-          due_date: s.dueDate,
-          color_code: s.colorCode
-        }))
+        workflow_states: [{
+          state_name: state.stateName,
+          name: state.name,
+          assigned_team: state.assignedTeam,
+          status: state.status,
+          due_date: state.dueDate,
+          color_code: state.colorCode
+        }]
       }
     });
 
@@ -126,11 +158,26 @@ exports.createOrder = async (req, res) => {
 };
 
 
+
+
+
+
+// get All orders
+
+
+
+
+
+
+
+
+
+
 exports.getAllOrders=async (req,res) => {
     // const orderId=parseInt(req.params.id)
     try {
 
-        const Order=await prisma.order.findMany({
+        const Orders=await prisma.order.findMany({
             // where:{id:orderId},
             include:{
                 customer:true,
@@ -145,70 +192,94 @@ exports.getAllOrders=async (req,res) => {
             }
         })
 
-        if (!Order) {
+        if (!Orders) {
             res.status(400).json({error:"no order found"})
         }
-        res.status(200).json({
-            message:"success",
-            order:{
-                id:Order.id,
-                customer: Order.customer,
-                order_type: Order.orderType,
-                current_state: Order.currentState,
-                overall_status: Order.overallStatus,
-                specifications: Order.specifications,
-                delivery_date: Order.deliveryDate,
-                total_amount: Order.totalAmount,
-                special_instructions: Order.specialInstructions,
-                created_date: Order.createdDate,
-                order_items:Order.items.map((item)=>(
-                    {
-                        id: item.id,
-                        service_type: item.serviceType,
-                        quantity: item.quantity,
-                        unit_price: item.unitPrice,
-                        total_price: item.totalPrice,
-                        size: item.size,
-                        color: item.color,
-                        specifications: item.specifications,
-                        product: item.product
-                    }
-                )
-                   
-                ),
-                workflow_states:Order.workflowStates.map((state)=>(
-                    {
-                        state_name: state.stateName,
-                        name: state.name,
-                        assigned_team: state.assignedTeam,
-                        status: state.status,
-                        due_date: state.dueDate,
-                        color_code: state.colorCode
-                })),
-                files:Order.files.map((file)=>({
-                    id: file.id,
-                    file_path: file.filePath,
-                    file_type: file.fileType,
-                    uploaded_by: file.uploadedBy,
-                    upload_date: file.uploadDate,
-                    is_approved: file.isApproved,
-                    approval_date: file.approvalDate
+        const formattedData=Orders.map((Order)=>({
+          id:Order.id,
+          customer: Order.customer,
+          order_type: Order.orderType,
+          current_state: Order.currentState,
+          overall_status: Order.overallStatus,
+          specifications: Order.specifications,
+          delivery_date: Order.deliveryDate,
+          total_amount: Order.totalAmount,
+          special_instructions: Order.specialInstructions,
+          created_date: Order.createdDate,
+          order_items:Order.items.map((item)=>(
+              {
+                  id: item.id,
+                  service_type: item.serviceType,
+                  quantity: item.quantity,
+                  unit_price: item.unitPrice,
+                  total_price: item.totalPrice,
+                  size: item.size,
+                  color: item.color,
+                  specifications: item.specifications,
+                  product: item.product
+              }
+          )
+             
+          ),
+          workflow_states:Order.workflowStates.map((state)=>(
+              {
+                  state_name: state.stateName,
+                  name: state.name,
+                  assigned_team: state.assignedTeam,
+                  status: state.status,
+                  due_date: state.dueDate,
+                  color_code: state.colorCode
+          })),
+          files:Order.files.map((file)=>({
+              id: file.id,
+              file_path: file.filePath,
+              file_type: file.fileType,
+              uploaded_by: file.uploadedBy,
+              upload_date: file.uploadDate,
+              is_approved: file.isApproved,
+              approval_date: file.approvalDate
 
-                })),
-                comments:Order.comments.map((comment)=>(
-                    {
-                        id: comment.id,
-                        comment_text: comment.commentText,
-                        comment_type: comment.commentType,
-                        created_by: comment.createdBy,
-                        created_at: comment.createdAt
-                }))
-            }
+          })),
+          comments:Order.comments.map((comment)=>(
+              {
+                  id: comment.id,
+                  comment_text: comment.commentText,
+                  comment_type: comment.commentType,
+                  created_by: comment.createdBy,
+                  created_at: comment.createdAt
+          }))
+          
+        }))
+
+        res.status(200).json({message:"success",
+          orders:formattedData
         })
+           
     } catch (error) {
         res.status(400).json({error:error.message})
     }
 }
+
+
+
+
+
+
+
+
+// get a single order
+
+
+
+
+
+
+
+
+
+
+
+
 
 exports.getOrder=async (req,res) => {
     const orderId=parseInt(req.params.id)

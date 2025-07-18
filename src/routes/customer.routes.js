@@ -10,5 +10,6 @@ router.post('/create', customerController.createCustomer);
 
 // Get all customers or a single customer by ID
 router.get('/', customerController.getAllCustomers);
+router.get('/:id', customerController.Customer);
 
 module.exports = router;
