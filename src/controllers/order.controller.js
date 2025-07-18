@@ -51,112 +51,239 @@ exports.createOrder = async (req, res) => {
     const orderData = await prisma.order.create({
       data: {
         customerId: customerRecord.id,
-        orderType: order.order_type,
-        currentState: workflowTemplates[order.order_type][0].state,
-        overallStatus: "Processing",
-        specifications: order.specifications,
-        deliveryDate: new Date(order.delivery_date),
-        totalAmount: order.order_items.reduce((sum, i) => sum + i.total_price, 0),
-        specialInstructions: order.special_instructions
+        orderTitle: order.order_title,
+        dueDate: new Date(order.due_date),
+        status: order.status || "Draft",
+        notes: order.notes,
+        createdBy: req.user?.id || "system",
+        updatedBy: req.user?.id || "system"
       }
     });
 
-    // Step 3: Create Order Items
-    const items = await Promise.all(order.order_items.map(item =>
-      prisma.orderItem.create({
-        data: {
-          orderId: orderData.id,
-          productId: item.product_id,
-          serviceType: order.order_type,
-          quantity: item.quantity,
-          unitPrice: item.unit_price,
-          totalPrice: item.total_price,
-          size: item.size,
-          color: item.color,
-          specifications: item.specifications
-        },
-        include: { product: true }
-      })
-    ));
-
-    // Step 4: Create Workflow States
-    const createdAt = new Date(orderData.createdDate);
-    const firstState=workflowTemplates[order.order_type][0]
-    const state= await prisma.workflowState.create({
+    // Step 3: Create Order Items with Products
+    const createdItems = await Promise.all(
+      order.order_items.map(async (item) => {
+        // First create the product for this order item
+        const product = await prisma.product.create({
           data: {
-            orderId: orderData.id,
-            stateName: firstState.state,
-            name: firstState.name,
-            assignedTeam: firstState.team,
-            status: "Pending",
-            dueDate:firstState.due,
-            colorCode: firstState.color
+            title: item.product.title,
+            price: item.product.price,
+            color: item.product.color,
+            category: item.product.category, // "Goods with Service" or "Service"
+            serviceId: item.product.service_id,
+            sku: item.product.sku,
+            turnaroundDays: item.product.turnaround_days,
+            requiresCustomerGarment: item.product.requires_customer_garment || false,
+            active: true,
+            createdBy: req.user?.id || "system",
+            updatedBy: req.user?.id || "system"
           }
         });
 
-    // const states = await Promise.all(
-      
-      
-    //   workflowTemplates[order.order_type].map((step, index) => {
-    //     // const dueDate = new Date(createdAt);
-    //     // dueDate.setDate(dueDate.getDate() + step.dueDays);
+        // Then create the order item linking to the product
+        const orderItem = await prisma.orderItem.create({
+          data: {
+            orderId: orderData.id,
+            productId: product.id,
+            quantity: item.quantity,
+            sizeBreakdown: item.size_breakdown, // JSON string like "S:3,M:5,L:2"
+            teamBuilderEnabled: item.team_builder_enabled || false,
+            priceOverride: item.price_override,
+            itemNotes: item.item_notes,
+            createdBy: req.user?.id || "system",
+            updatedBy: req.user?.id || "system"
+          },
+          include: { 
+            product: {
+              include: {
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: {
+                          orderBy: { orderSequence: 'asc' }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        });
 
-    //     return prisma.workflowState.create({
-    //       data: {
-    //         orderId: orderData.id,
-    //         stateName: step.state,
-    //         name: step.name,
-    //         assignedTeam: step.team,
-    //         status: "Pending",
-    //         dueDate,
-    //         colorCode: step.color
-    //       }
-    //     });
-    //   })
-    // );
+        // Update the product to reference the order item (1:1 relationship)
+        await prisma.product.update({
+          where: { id: product.id },
+          data: { orderItemId: orderItem.id }
+        });
 
-    // Step 5: Return formatted response
+        return orderItem;
+      })
+    );
+
+    // Step 4: Create TeamBuilder Details if enabled
+    const teamBuilderDetails = await Promise.all(
+      order.order_items.flatMap(async (item, itemIndex) => {
+        if (!item.team_builder_enabled || !item.team_builder_details) return [];
+        
+        const orderItem = createdItems[itemIndex];
+        
+        return Promise.all(
+          item.team_builder_details.map(detail => 
+            prisma.teamBuilderDetail.create({
+              data: {
+                orderItemId: orderItem.id,
+                size: detail.size,
+                jerseyName: detail.jersey_name,
+                jerseyNumber: detail.jersey_number,
+                quantity: detail.quantity
+              }
+            })
+          )
+        );
+      })
+    );
+
+    // Step 5: Create initial workflow states for each order item
+    const workflowStates = [];
+    for (const orderItem of createdItems) {
+      const workflow = orderItem.product.service.workflow;
+      if (workflow && workflow.stages.length > 0) {
+        const firstStage = workflow.stages[0];
+        const createdAt = new Date(orderData.createdAt);
+        const dueDate = new Date(createdAt);
+        dueDate.setDate(dueDate.getDate() + firstStage.dueDays);
+
+        const workflowState = await prisma.workflowState.create({
+          data: {
+            orderItemId: orderItem.id,
+            stageId: firstStage.id,
+            status: "Pending",
+            dueDate: dueDate,
+            assignedTo: null, // Can be assigned later
+            createdBy: req.user?.id || "system"
+          }
+        });
+
+        workflowStates.push(workflowState);
+      }
+    }
+
+    // Step 6: Create initial activity log entry
+    await prisma.activityLog.create({
+      data: {
+        orderId: orderData.id,
+        action: "Order created",
+        actionBy: req.user?.id || "system",
+        details: `Order ${orderData.id} created with ${createdItems.length} items`,
+        tableAffected: "Orders",
+        recordId: String(orderData.id)
+      }
+    });
+
+    // Step 7: Calculate total amount
+    const totalAmount = createdItems.reduce((sum, item) => {
+      const price = item.priceOverride || item.product.price;
+      return sum + (price * item.quantity);
+    }, 0);
+
+    // Update order with total amount
+    await prisma.order.update({
+      where: { id: orderData.id },
+      data: { totalAmount }
+    });
+
+    // Step 8: Return formatted response
     return res.status(201).json({
       message: "Order created successfully",
       order: {
         id: orderData.id,
         customer: customerRecord,
-        order_type: orderData.orderType,
-        current_state: orderData.currentState,
-        overall_status: orderData.overallStatus,
-        specifications: orderData.specifications,
-        delivery_date: orderData.deliveryDate,
-        total_amount: orderData.totalAmount,
-        special_instructions: orderData.specialInstructions,
-        created_date: orderData.createdDate,
-        order_items: items.map(i => ({
-          id: i.id,
-          product: i.product,
-          service_type: i.serviceType,
-          quantity: i.quantity,
-          unit_price: i.unitPrice,
-          total_price: i.totalPrice,
-          size: i.size,
-          color: i.color,
-          specifications: i.specifications
+        order_title: orderData.orderTitle,
+        due_date: orderData.dueDate,
+        status: orderData.status,
+        notes: orderData.notes,
+        total_amount: totalAmount,
+        created_date: orderData.createdAt,
+        created_by: orderData.createdBy,
+        order_items: createdItems.map(item => ({
+          id: item.id,
+          product: {
+            id: item.product.id,
+            title: item.product.title,
+            price: item.product.price,
+            color: item.product.color,
+            category: item.product.category,
+            sku: item.product.sku,
+            service: item.product.service.title,
+            workflow: item.product.service.workflow.title,
+            workflowStage:item.product.service.workflow.stages.map((stage)=>({
+              state:stage.state,
+              name:stage.name,
+              dueDays:stage.dueDays
+              
+            }))
+            
+            } 
+              
+
+            
+          ,
+          quantity: item.quantity,
+          size_breakdown: item.sizeBreakdown,
+          team_builder_enabled: item.teamBuilderEnabled,
+          price_override: item.priceOverride,
+          item_notes: item.itemNotes,
+          
         })),
-        workflow_states: [{
-          state_name: state.stateName,
-          name: state.name,
-          assigned_team: state.assignedTeam,
-          status: state.status,
-          due_date: state.dueDate,
-          color_code: state.colorCode
-        }]
+        team_builder_details: teamBuilderDetails.flat()
+        // workflow_states: workflowStates.map(state => ({
+        //   id: state.id,
+        //   order_item_id: state.orderItemId,
+        //   stage_id: state.stageId,
+        //   status: state.status,
+        //   due_date: state.dueDate,
+        //   assigned_to: state.assignedTo
+        // }))
       }
     });
 
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Order creation failed", error: error.message });
+    console.error('Order creation error:', error);
+    return res.status(500).json({ 
+      message: "Order creation failed", 
+      error: error.message 
+    });
   }
 };
 
+// Helper function to validate order data
+const validateOrderData = (orderData) => {
+  const errors = [];
+  
+  if (!orderData.customer?.email) {
+    errors.push("Customer email is required");
+  }
+  
+  if (!orderData.order?.order_items || orderData.order.order_items.length === 0) {
+    errors.push("At least one order item is required");
+  }
+  
+  orderData.order?.order_items?.forEach((item, index) => {
+    if (!item.product?.title) {
+      errors.push(`Order item ${index + 1}: Product title is required`);
+    }
+    if (!item.product?.service_id) {
+      errors.push(`Order item ${index + 1}: Service ID is required`);
+    }
+    if (!item.quantity || item.quantity <= 0) {
+      errors.push(`Order item ${index + 1}: Valid quantity is required`);
+    }
+  });
+  
+  return errors;
+};
 
 
 
@@ -173,92 +300,118 @@ exports.createOrder = async (req, res) => {
 
 
 
-exports.getAllOrders=async (req,res) => {
-    // const orderId=parseInt(req.params.id)
-    try {
-
-        const Orders=await prisma.order.findMany({
-            // where:{id:orderId},
-            include:{
-                customer:true,
-                items:{
-                    include:{
-                        product:true
-                    }
-                },
-                workflowStates:true,
-                files:true,
-                comments:true
-            }
-        })
-
-        if (!Orders) {
-            res.status(400).json({error:"no order found"})
-        }
-        const formattedData=Orders.map((Order)=>({
-          id:Order.id,
-          customer: Order.customer,
-          order_type: Order.orderType,
-          current_state: Order.currentState,
-          overall_status: Order.overallStatus,
-          specifications: Order.specifications,
-          delivery_date: Order.deliveryDate,
-          total_amount: Order.totalAmount,
-          special_instructions: Order.specialInstructions,
-          created_date: Order.createdDate,
-          order_items:Order.items.map((item)=>(
-              {
-                  id: item.id,
-                  service_type: item.serviceType,
-                  quantity: item.quantity,
-                  unit_price: item.unitPrice,
-                  total_price: item.totalPrice,
-                  size: item.size,
-                  color: item.color,
-                  specifications: item.specifications,
-                  product: item.product
-              }
-          )
-             
-          ),
-          workflow_states:Order.workflowStates.map((state)=>(
-              {
-                  state_name: state.stateName,
-                  name: state.name,
-                  assigned_team: state.assignedTeam,
-                  status: state.status,
-                  due_date: state.dueDate,
-                  color_code: state.colorCode
-          })),
-          files:Order.files.map((file)=>({
-              id: file.id,
-              file_path: file.filePath,
-              file_type: file.fileType,
-              uploaded_by: file.uploadedBy,
-              upload_date: file.uploadDate,
-              is_approved: file.isApproved,
-              approval_date: file.approvalDate
-
-          })),
-          comments:Order.comments.map((comment)=>(
-              {
-                  id: comment.id,
-                  comment_text: comment.commentText,
-                  comment_type: comment.commentType,
-                  created_by: comment.createdBy,
-                  created_at: comment.createdAt
-          }))
-          
-        }))
-
-        res.status(200).json({message:"success",
-          orders:formattedData
-        })
-           
-    } catch (error) {
-        res.status(400).json({error:error.message})
+exports.getAllOrders = async (req, res) => {
+  try {
+    const { status, customerId, startDate, endDate } = req.query;
+    
+    const where = {};
+    
+    if (status) where.status = status;
+    if (customerId) where.customerId = customerId;
+    if (startDate && endDate) {
+      where.createdAt = {
+        gte: new Date(startDate),
+        lte: new Date(endDate)
+      };
     }
-}
+
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        customer: true,
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: {
+                          orderBy: { orderSequence: 'asc' }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            teamBuilderDetails: true,
+            workflowStates: {
+              include: {
+                stage: true
+              }
+            }
+          }
+        },
+        activityLogs: {
+          orderBy: { createdAt: 'desc' },
+          take: 5 // Get only the 5 most recent logs
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Calculate totals and format response
+    const formattedOrders = orders.map(order => {
+      const totalAmount = order.orderItems.reduce((sum, item) => {
+        const price = item.priceOverride || item.product.price;
+        return sum + (price * item.quantity);
+      }, 0);
+
+      return {
+        id: order.id,
+        customer: order.customer,
+        order_title: order.orderTitle,
+        due_date: order.dueDate,
+        status: order.status,
+        notes: order.notes,
+        total_amount: totalAmount,
+        created_date: order.createdAt,
+        created_by: order.createdBy,
+        order_items: order.orderItems.map(item => ({
+          id: item.id,
+          product: {
+            id: item.product.id,
+            title: item.product.title,
+            price: item.product.price,
+            color: item.product.color,
+            category: item.product.category,
+            sku: item.product.sku,
+            service: item.product.service?.title,
+            workflow: item.product.service?.workflow?.title,
+            workflowStages: item.product.service?.workflow?.stages?.map(stage => ({
+              id: stage.id,
+              name: stage.name,
+              dueDays: stage.dueDays
+            }))
+          },
+          quantity: item.quantity,
+          size_breakdown: item.sizeBreakdown,
+          team_builder_enabled: item.teamBuilderEnabled,
+          price_override: item.priceOverride,
+          item_notes: item.itemNotes,
+          team_builder_details: item.teamBuilderDetails,
+          current_workflow_state: item.workflowStates[0] // Assuming most recent is first
+        })),
+        recent_activity: order.activityLogs
+      };
+    });
+
+    return res.status(200).json({
+      message: "Orders retrieved successfully",
+      count: formattedOrders.length,
+      orders: formattedOrders
+    });
+
+  } catch (error) {
+    console.error('Get orders error:', error);
+    return res.status(500).json({ 
+      message: "Failed to retrieve orders", 
+      error: error.message 
+    });
+  }
+};
 
 
 
@@ -284,83 +437,119 @@ exports.getAllOrders=async (req,res) => {
 exports.getOrder=async (req,res) => {
     const orderId=parseInt(req.params.id)
     try {
+    
 
-        const Order=await prisma.order.findUnique({
-            where:{id:orderId},
-            include:{
-                customer:true,
-                items:{
-                    include:{
-                        product:true
+    const order = await prisma.order.findUnique({
+      where: { orderId },
+      include: {
+        customer: true,
+        orderItems: {
+          include: {
+            product: {
+              include: {
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: {
+                          orderBy: { orderSequence: 'asc' }
+                        }
+                      }
                     }
-                },
-                workflowStates:true,
-                files:true,
-                comments:true
+                  }
+                }
+              }
+            },
+            teamBuilderDetails: true,
+            workflowStates: {
+              include: {
+                stage: true,
+                assignedToUser: true
+              },
+              orderBy: { createdAt: 'desc' }
             }
-        })
-
-        if (!Order) {
-            res.status(400).json({error:"no order found"})
+          }
+        },
+        activityLogs: {
+          orderBy: { createdAt: 'desc' }
         }
-        res.status(200).json({
-            message:"success",
-            order:{
-                id:Order.id,
-                customer: Order.customer,
-                order_type: Order.orderType,
-                current_state: Order.currentState,
-                overall_status: Order.overallStatus,
-                specifications: Order.specifications,
-                delivery_date: Order.deliveryDate,
-                total_amount: Order.totalAmount,
-                special_instructions: Order.specialInstructions,
-                created_date: Order.createdDate,
-                order_items:Order.items.map((item)=>(
-                    {
-                        id: item.id,
-                        service_type: item.serviceType,
-                        quantity: item.quantity,
-                        unit_price: item.unitPrice,
-                        total_price: item.totalPrice,
-                        size: item.size,
-                        color: item.color,
-                        specifications: item.specifications,
-                        product: item.product
-                    }
-                )
-                   
-                ),
-                workflow_states:Order.workflowStates.map((state)=>(
-                    {
-                        state_name: state.stateName,
-                        name: state.name,
-                        assigned_team: state.assignedTeam,
-                        status: state.status,
-                        due_date: state.dueDate,
-                        color_code: state.colorCode
-                })),
-                files:Order.files.map((file)=>({
-                    id: file.id,
-                    file_path: file.filePath,
-                    file_type: file.fileType,
-                    uploaded_by: file.uploadedBy,
-                    upload_date: file.uploadDate,
-                    is_approved: file.isApproved,
-                    approval_date: file.approvalDate
+      }
+    });
 
-                })),
-                comments:Order.comments.map((comment)=>(
-                    {
-                        id: comment.id,
-                        comment_text: comment.commentText,
-                        comment_type: comment.commentType,
-                        created_by: comment.createdBy,
-                        created_at: comment.createdAt
-                }))
-            }
-        })
-    } catch (error) {
-        res.status(400).json({error:error.message})
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
     }
+
+    // Calculate total amount
+    const totalAmount = order.orderItems.reduce((sum, item) => {
+      const price = item.priceOverride || item.product.price;
+      return sum + (price * item.quantity);
+    }, 0);
+
+    // Format workflow states with progress
+    const workflowProgress = {};
+    order.orderItems.forEach(item => {
+      if (item.product.service?.workflow) {
+        const totalStages = item.product.service.workflow.stages.length;
+        const completedStages = item.workflowStates.filter(s => s.status === 'Completed').length;
+        workflowProgress[item.id] = {
+          completed: completedStages,
+          total: totalStages,
+          percentage: Math.round((completedStages / totalStages) * 100)
+        };
+      }
+    });
+
+    // Format response
+    const formattedOrder = {
+      id: order.id,
+      customer: order.customer,
+      order_title: order.orderTitle,
+      due_date: order.dueDate,
+      status: order.status,
+      notes: order.notes,
+      total_amount: totalAmount,
+      created_date: order.createdAt,
+      created_by: order.createdBy,
+      order_items: order.orderItems.map(item => ({
+        id: item.id,
+        product: {
+          id: item.product.id,
+          title: item.product.title,
+          price: item.product.price,
+          color: item.product.color,
+          category: item.product.category,
+          sku: item.product.sku,
+          service: item.product.service?.title,
+          workflow: item.product.service?.workflow?.title,
+          workflowStages: item.product.service?.workflow?.stages?.map(stage => ({
+            id: stage.id,
+            name: stage.name,
+            dueDays: stage.dueDays
+          }))
+        },
+        quantity: item.quantity,
+        size_breakdown: item.sizeBreakdown,
+        team_builder_enabled: item.teamBuilderEnabled,
+        price_override: item.priceOverride,
+        item_notes: item.itemNotes,
+        team_builder_details: item.teamBuilderDetails,
+        workflow_states: item.workflowStates,
+        workflow_progress: workflowProgress[item.id]
+      })),
+      activity_logs: order.activityLogs
+    };
+
+    return res.status(200).json({
+      message: "Order retrieved successfully",
+      order: formattedOrder
+    });
+
+  } catch (error) {
+    console.error('Get single order error:', error);
+    return res.status(500).json({ 
+      message: "Failed to retrieve order", 
+      error: error.message 
+    });
+  }
 }
