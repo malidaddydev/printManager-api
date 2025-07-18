@@ -59,3 +59,16 @@ exports.Customer=async(req,res)=>{
   }
 }
 
+exports.deleteCustomer = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedCustomer = await prisma.customer.delete({
+      where: { id: Number(id) } // If your ID is an integer
+    });
+
+    res.status(200).json({ message: "Customer deleted successfully", deletedCustomer });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
