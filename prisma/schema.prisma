@@ -28,6 +28,7 @@ model Customer {
   name    String  @db.VarChar(255)
   email   String  @db.VarChar(255)
   mobile  String  @db.VarChar(20)
+  mobile2  String?  @db.VarChar(20)
   company String? @db.VarChar(255)
   address String? @db.Text
   orders  Order[]
