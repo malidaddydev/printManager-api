@@ -16,22 +16,6 @@ exports.createCustomer=async (req, res) => {
     res.status(400).json({error:error.message})
   }
 }
-exports.updateCustomer=async (req, res) => {
-  try {
-    const {id}=req.params.id
-    const {name,company,mobile,address,email}=req.body
-    const updatedCustomers=await prisma.customer.update({
-      where:{id:Number(id)},
-      data:{
-        name,email,mobile,company,address
-      }
-
-    })
-    res.status(201).json(updatedCustomers)
-  } catch (error) {
-    res.status(400).json({error:error.message})
-  }
-}
 
 
 exports.getAllCustomers=async(req,res)=>{
@@ -66,9 +50,27 @@ exports.deleteCustomer = async (req, res) => {
     const deletedCustomer = await prisma.customer.delete({
       where: { id: Number(id) } // If your ID is an integer
     });
-
+    
     res.status(200).json({ message: "Customer deleted successfully", deletedCustomer });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
+
+exports.updateCustomer=async (req, res) => {
+  try {
+    const {id}=req.params.id
+    const {name,company,mobile,address,email}=req.body
+    const updatedCustomers=await prisma.customer.update({
+      where:{id:Number(id)},
+      data:{
+        name,email,mobile,company,address
+      }
+
+    })
+    res.status(201).json(updatedCustomers)
+  } catch (error) {
+    res.status(400).json({error:error.message})
+  }
+}

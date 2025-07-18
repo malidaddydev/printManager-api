@@ -47,3 +47,69 @@ exports.getAllUser=async (req,res) => {
          res.status(400).json({ error: error.message });
     }
 }
+
+
+exports.singleUser=async (req,res) => {
+    try {
+        const { id } = req.params;
+        const user=await prisma.user.findUnique({
+            where:{id:Number(id)}
+        });
+        res.status(201).json(user)
+    } catch (error) {
+         res.status(400).json({ error: error.message });
+    }
+}
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedUser = await prisma.user.delete({
+      where: { id: Number(id) } // If your ID is an integer
+    });
+    
+    res.status(200).json({ message: "Customer deleted successfully", deletedCustomer });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+exports.updateUser=async (req, res) => {
+  try {
+    const {id}=req.params.id
+     const { username,
+            email,
+            password,
+            firstName,
+            lastName,
+            isActive,
+            isAdmin,
+            isManager,
+            isMember}=req.body;
+            const hashedPassword=await bcrypt.hash(password,10)
+        const user= await prisma.user.update({
+            where:{id:Number(id)},
+            data:{
+                username,
+                email,
+                passwordHash:hashedPassword,
+                firstName,
+                lastName,
+                isActive,
+                isAdmin,
+                isManager,
+                isMember
+
+
+            },
+
+        })
+        const {passwordHash,...userData}=user
+        res.status(201).json(userData)
+    res.status(201).json(updatedCustomers)
+  } catch (error) {
+    res.status(400).json({error:error.message})
+  }
+}
