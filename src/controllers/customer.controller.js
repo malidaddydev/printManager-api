@@ -48,7 +48,7 @@ exports.deleteCustomer = async (req, res) => {
     const { id } = req.params;
 
     const deletedCustomer = await prisma.customer.delete({
-      where: { id: Number(id) } // If your ID is an integer
+      where: { id: parseInt(id) } // If your ID is an integer
     });
     
     res.status(200).json({ message: "Customer deleted successfully", deletedCustomer });
@@ -63,7 +63,7 @@ exports.updateCustomer=async (req, res) => {
     const {id}=req.params.id
     const {name,company,mobile,address,email}=req.body
     const updatedCustomers=await prisma.customer.update({
-      where:{id:Number(id)},
+      where:{id: parseInt(id)},
       data:{
         name,email,mobile,company,address
       }
