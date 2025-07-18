@@ -113,3 +113,43 @@ exports.updateUser=async (req, res) => {
     res.status(400).json({error:error.message})
   }
 }
+
+exports.activeUsers=async (req,res) => {
+    try {
+        const activeUsers=await prisma.user.findMany({
+            where:{isActive:true},
+            select:{
+                 id: true,
+                username: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                isActive: true,
+                createdAt: true
+            }
+        });
+        res.status(201).json(activeUsers)
+    } catch (error) {
+         res.status(400).json({ error: error.message });
+    }
+}
+
+exports.deactiveUsers=async (req,res) => {
+    try {
+        const deactiveUsers=await prisma.user.findMany({
+            where:{isActive:false},
+            select:{
+                 id: true,
+                username: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                isActive: true,
+                createdAt: true
+            }
+        });
+        res.status(201).json(deactiveUsers)
+    } catch (error) {
+         res.status(400).json({ error: error.message });
+    }
+}
