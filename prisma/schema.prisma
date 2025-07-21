@@ -72,7 +72,7 @@ model OrderItem {
   files              OrderFile[]
   comments           OrderComment[]
   teamBuilderDetails TeamBuilderDetail[]
-  workflowStates     WorkflowState[]
+  
 
   @@index([orderId])
   @@index([productId])
@@ -96,6 +96,7 @@ model Product {
   updatedAt               DateTime   @default(now()) @db.DateTime(0)
   orderItem               OrderItem?
   service                 Service    @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  stages                  WorkflowStage[] @relation("ProductWorkflowStages")
 
   @@index([serviceId])
 }
@@ -112,25 +113,14 @@ model Service {
   createdAt DateTime  @default(now()) @db.DateTime(0)
   updatedAt DateTime  @default(now()) @db.DateTime(0)
   products  Product[]
-  workflow  Workflow?
+  
 }
 
-model Workflow {
-  id        Int             @id @default(autoincrement())
-  serviceId Int             @unique // One-to-one relationship
-  title     String          @db.VarChar(255)
-  active    Boolean         @default(true)
-  createdBy String?         @db.VarChar(100)
-  updatedBy String?         @db.VarChar(100)
-  createdAt DateTime        @default(now()) @db.DateTime(0)
-  updatedAt DateTime        @default(now()) @db.DateTime(0)
-  service   Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  stages    WorkflowStage[]
-}
+
 
 model WorkflowStage {
   id            Int             @id @default(autoincrement())
-  workflowId    Int
+  productId     Int
   state         String          @db.VarChar(100) // Machine-readable code
   name          String          @db.VarChar(255) // Display name
   dueDays       Int             // Days from start
@@ -138,30 +128,15 @@ model WorkflowStage {
   active        Boolean         @default(true)
   createdAt     DateTime        @default(now()) @db.DateTime(0)
   updatedAt     DateTime        @default(now()) @db.DateTime(0)
-  workflow      Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  createdBy     String?         @db.VarChar(100)
+  updatedBy     String?         @db.VarChar(100)
   files         OrderFile[]
-  workflowStates WorkflowState[]
+  product       Product         @relation("ProductWorkflowStages", fields: [productId], references: [id], onDelete: Cascade)
 
-  @@index([workflowId])
+ 
 }
 
-model WorkflowState {
-  id          Int           @id @default(autoincrement())
-  orderItemId Int
-  stageId     Int
-  status      String        @default("Pending") @db.VarChar(50)
-  dueDate     DateTime?     @db.DateTime(0)
-  assignedTo  String?       @db.VarChar(100)
-  completedAt DateTime?     @db.DateTime(0)
-  createdBy   String?       @db.VarChar(100)
-  createdAt   DateTime      @default(now()) @db.DateTime(0)
-  updatedAt   DateTime      @default(now()) @db.DateTime(0)
-  orderItem   OrderItem     @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  stage       WorkflowStage @relation(fields: [stageId], references: [id], onDelete: Restrict)
 
-  @@index([orderItemId])
-  @@index([stageId])
-}
 
 model OrderFile {
   id           Int           @id @default(autoincrement())

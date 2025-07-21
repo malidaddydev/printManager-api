@@ -76,43 +76,41 @@ exports.deleteUser = async (req, res) => {
 };
 
 
-exports.updateUser=async (req, res) => {
+exports.updateUser = async (req, res) => {
   try {
-    const {id}=req.params
-     const { username,
-            email,
-            password,
-            firstName,
-            lastName,
-            isActive,
-            isAdmin,
-            isManager,
-            isMember}=req.body;
-            const hashedPassword=await bcrypt.hash(password.toString(), 10)
-        const user= await prisma.user.update({
-            where:{id:parseInt(id)},
-            data:{
-                username,
-                email,
-                passwordHash:hashedPassword,
-                firstName,
-                lastName,
-                isActive,
-                isAdmin,
-                isManager,
-                isMember
+    const {id} = req.params;
+    const { username, email, password, firstName, lastName, isActive, isAdmin, isManager, isMember } = req.body;
+    
+    const updateData = {
+      username,
+      email,
+      firstName,
+      lastName,
+      isActive,
+      isAdmin,
+      isManager,
+      isMember
+    };
 
+    // Only update password if it's provided
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password.toString(), 10);
+      updateData.passwordHash = hashedPassword;
+    }
 
-            },
+    const user = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: updateData
+    });
 
-        })
-        const {passwordHash,...userData}=user
-        res.status(201).json(userData)
+    const {passwordHash, ...userData} = user;
+    res.status(201).json(userData);
    
   } catch (error) {
-    res.status(400).json({error:error.message})
+    res.status(400).json({error: error.message});
   }
 }
+
 
 exports.activeUsers=async (req,res) => {
     try {

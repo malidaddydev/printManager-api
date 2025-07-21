@@ -76,9 +76,25 @@ exports.createOrder = async (req, res) => {
             requiresCustomerGarment: item.product.requires_customer_garment || false,
             active: true,
             createdBy: req.user?.id || "system",
-            updatedBy: req.user?.id || "system"
-          }
-        });
+            updatedBy: req.user?.id || "system",
+            stages: {
+                    create: item.product.stages.map((stage, index) => ({
+                      state: stage.state,
+                      name: stage.name,
+                      dueDays: stage.dueDays,
+                      orderSequence: stage.orderSequence || index + 1,
+                      createdAt: new Date(),
+                      updatedAt: new Date(),
+                      createdBy: req.user?.id || "system",
+                      updatedBy: req.user?.id || "system"
+                    }))
+                  }
+      },
+      include: { stages: true }
+    });
+
+        
+
 
         // Then create the order item linking to the product
         const orderItem = await prisma.orderItem.create({
@@ -96,21 +112,22 @@ exports.createOrder = async (req, res) => {
           include: { 
             product: {
               include: {
-                service: {
-                  include: {
-                    workflow: {
-                      include: {
+                service:true,
                         stages: {
                           orderBy: { orderSequence: 'asc' }
                         }
                       }
                     }
                   }
-                }
-              }
-            }
-          }
-        });
+                
+
+              })
+                  
+                
+              
+            
+          
+        
 
         // Update the product to reference the order item (1:1 relationship)
         await prisma.product.update({
@@ -122,132 +139,66 @@ exports.createOrder = async (req, res) => {
       })
     );
 
-    // Step 4: Create TeamBuilder Details if enabled
-    const teamBuilderDetails = await Promise.all(
-      order.order_items.flatMap(async (item, itemIndex) => {
-        if (!item.team_builder_enabled || !item.team_builder_details) return [];
-        
-        const orderItem = createdItems[itemIndex];
-        
-        return Promise.all(
-          item.team_builder_details.map(detail => 
-            prisma.teamBuilderDetail.create({
-              data: {
-                orderItemId: orderItem.id,
-                size: detail.size,
-                jerseyName: detail.jersey_name,
-                jerseyNumber: detail.jersey_number,
-                quantity: detail.quantity
-              }
-            })
-          )
-        );
-      })
-    );
+    
 
-    // Step 5: Create initial workflow states for each order item
-    const workflowStates = [];
-    for (const orderItem of createdItems) {
-      const workflow = orderItem.product.service.workflow;
-      if (workflow && workflow.stages.length > 0) {
-        const firstStage = workflow.stages[0];
-        const createdAt = new Date(orderData.createdAt);
-        const dueDate = new Date(createdAt);
-        dueDate.setDate(dueDate.getDate() + firstStage.dueDays);
+    
 
-        const workflowState = await prisma.workflowState.create({
-          data: {
-            orderItemId: orderItem.id,
-            stageId: firstStage.id,
-            status: "Pending",
-            dueDate: dueDate,
-            assignedTo: null, // Can be assigned later
-            createdBy: req.user?.id || "system"
-          }
-        });
+   // Step 4: Calculate total amount
+const totalAmount = createdItems.reduce((sum, item) => {
+  const price = item.priceOverride ?? item.product?.price ?? 0;
+  return sum + (item.quantity * price);
+}, 0);
 
-        workflowStates.push(workflowState);
-      }
-    }
-
-    // Step 6: Create initial activity log entry
-    await prisma.activityLog.create({
-      data: {
-        orderId: orderData.id,
-        action: "Order created",
-        actionBy: req.user?.id || "system",
-        details: `Order ${orderData.id} created with ${createdItems.length} items`,
-        tableAffected: "Orders",
-        recordId: String(orderData.id)
-      }
-    });
-
-    // Step 7: Calculate total amount
-    const totalAmount = createdItems.reduce((sum, item) => {
-      const price = item.priceOverride || item.product.price;
-      return sum + (price * item.quantity);
-    }, 0);
-
-    // Update order with total amount
-    await prisma.order.update({
-      where: { id: orderData.id },
-      data: { totalAmount }
-    });
+// Update order with total amount
+await prisma.order.update({
+  where: { id: orderData.id },
+  data: { totalAmount }
+});
 
     // Step 8: Return formatted response
     return res.status(201).json({
-      message: "Order created successfully",
-      order: {
-        id: orderData.id,
-        customer: customerRecord,
-        order_title: orderData.orderTitle,
-        due_date: orderData.dueDate,
-        status: orderData.status,
-        notes: orderData.notes,
-        total_amount: totalAmount,
-        created_date: orderData.createdAt,
-        created_by: orderData.createdBy,
-        order_items: createdItems.map(item => ({
-          id: item.id,
-          product: {
-            id: item.product.id,
-            title: item.product.title,
-            price: item.product.price,
-            color: item.product.color,
-            category: item.product.category,
-            sku: item.product.sku,
-            service: item.product.service.title,
-            workflow: item.product.service.workflow.title,
-            workflowStage:item.product.service.workflow.stages.map((stage)=>({
-              state:stage.state,
-              name:stage.name,
-              dueDays:stage.dueDays
-              
-            }))
-            
-            } 
-              
-
-            
-          ,
-          quantity: item.quantity,
-          size_breakdown: item.sizeBreakdown,
-          team_builder_enabled: item.teamBuilderEnabled,
-          price_override: item.priceOverride,
-          item_notes: item.itemNotes,
-          
-        })),
-        team_builder_details: teamBuilderDetails.flat()
-        // workflow_states: workflowStates.map(state => ({
-        //   id: state.id,
-        //   order_item_id: state.orderItemId,
-        //   stage_id: state.stageId,
-        //   status: state.status,
-        //   due_date: state.dueDate,
-        //   assigned_to: state.assignedTo
-        // }))
+  message: "Order created successfully",
+  order: {
+    id: orderData.id,
+    title: orderData.orderTitle,
+    due_date: orderData.dueDate,
+    status: orderData.status,
+    notes: orderData.notes,
+    total_amount: totalAmount,
+    created_at: orderData.createdAt,
+    created_by: orderData.createdBy,
+    customer: {
+      id: customerRecord.id,
+      name: customerRecord.name,
+      email: customerRecord.email,
+      phone: customerRecord.phone,
+      address: customerRecord.address
+    },
+    order_items: createdItems.map(item => ({
+      id: item.id,
+      quantity: item.quantity,
+      size_breakdown: item.sizeBreakdown,
+      team_builder_enabled: item.teamBuilderEnabled,
+      price_override: item.priceOverride,
+      item_notes: item.itemNotes,
+      product: {
+        id: item.product.id,
+        title: item.product.title,
+        price: item.product.price,
+        color: item.product.color,
+        category: item.product.category,
+        sku: item.product.sku,
+        service: item.product.service?.title || null,
+        stages: item.product.stages?.map(stage => ({
+            state: stage.state,
+            name: stage.name,
+            due_days: stage.dueDays,
+            order_sequence: stage.orderSequence
+          })) || []
       }
-    });
+    }))
+  }
+});
 
   } catch (error) {
     console.error('Order creation error:', error);
@@ -441,7 +392,7 @@ exports.getOrder=async (req,res) => {
 
     const order = await prisma.order.findUnique({
       where: { orderId },
-      include: {
+      include: {  
         customer: true,
         orderItems: {
           include: {
