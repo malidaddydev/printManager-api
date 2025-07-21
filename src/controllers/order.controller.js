@@ -209,33 +209,6 @@ await prisma.order.update({
   }
 };
 
-// Helper function to validate order data
-const validateOrderData = (orderData) => {
-  const errors = [];
-  
-  if (!orderData.customer?.email) {
-    errors.push("Customer email is required");
-  }
-  
-  if (!orderData.order?.order_items || orderData.order.order_items.length === 0) {
-    errors.push("At least one order item is required");
-  }
-  
-  orderData.order?.order_items?.forEach((item, index) => {
-    if (!item.product?.title) {
-      errors.push(`Order item ${index + 1}: Product title is required`);
-    }
-    if (!item.product?.service_id) {
-      errors.push(`Order item ${index + 1}: Service ID is required`);
-    }
-    if (!item.quantity || item.quantity <= 0) {
-      errors.push(`Order item ${index + 1}: Valid quantity is required`);
-    }
-  });
-  
-  return errors;
-};
-
 
 
 
@@ -268,84 +241,72 @@ exports.getAllOrders = async (req, res) => {
 
     const orders = await prisma.order.findMany({
       where,
-      include: {
+      include: {  
         customer: true,
-        orderItems: {
+        items: {
           include: {
             product: {
               include: {
-                service: {
-                  include: {
-                    workflow: {
-                      include: {
-                        stages: {
-                          orderBy: { orderSequence: 'asc' }
-                        }
-                      }
-                    }
-                  }
+                service:true,
+                stages: {
+                  orderBy: { orderSequence: 'asc' }
                 }
               }
             },
-            teamBuilderDetails: true,
-            workflowStates: {
-              include: {
-                stage: true
-              }
-            }
+            comments:true
+           
+            
           }
         },
-        activityLogs: {
-          orderBy: { createdAt: 'desc' },
-          take: 5 // Get only the 5 most recent logs
-        }
+        comments:true
+       
       },
       orderBy: { createdAt: 'desc' }
     });
 
     // Calculate totals and format response
     const formattedOrders = orders.map(order => {
-      const totalAmount = order.orderItems.reduce((sum, item) => {
+      const totalAmount = order.items.reduce((sum, item) => {
         const price = item.priceOverride || item.product.price;
         return sum + (price * item.quantity);
       }, 0);
 
       return {
         id: order.id,
-        customer: order.customer,
-        order_title: order.orderTitle,
-        due_date: order.dueDate,
-        status: order.status,
-        notes: order.notes,
-        total_amount: totalAmount,
-        created_date: order.createdAt,
-        created_by: order.createdBy,
-        order_items: order.orderItems.map(item => ({
-          id: item.id,
-          product: {
-            id: item.product.id,
-            title: item.product.title,
-            price: item.product.price,
-            color: item.product.color,
-            category: item.product.category,
-            sku: item.product.sku,
-            service: item.product.service?.title,
-            workflow: item.product.service?.workflow?.title,
-            workflowStages: item.product.service?.workflow?.stages?.map(stage => ({
-              id: stage.id,
-              name: stage.name,
-              dueDays: stage.dueDays
-            }))
-          },
-          quantity: item.quantity,
-          size_breakdown: item.sizeBreakdown,
-          team_builder_enabled: item.teamBuilderEnabled,
-          price_override: item.priceOverride,
-          item_notes: item.itemNotes,
-          team_builder_details: item.teamBuilderDetails,
-          current_workflow_state: item.workflowStates[0] // Assuming most recent is first
-        })),
-        recent_activity: order.activityLogs
+      customer: order.customer,
+      order_title: order.orderTitle,
+      due_date: order.dueDate,
+      status: order.status,
+      notes: order.notes,
+      total_amount: totalAmount,
+      created_date: order.createdAt,
+      created_by: order.createdBy,
+      order_items: order.items.map(item => ({
+        id: item.id,
+        product: {
+        id: item.product.id,
+        title: item.product.title,
+        price: item.product.price,
+        color: item.product.color,
+        category: item.product.category,
+        sku: item.product.sku,
+        service: item.product.service?.title || null,
+        stages: item.product.stages?.map(stage => ({
+            state: stage.state,
+            name: stage.name,
+            due_days: stage.dueDays,
+            order_sequence: stage.orderSequence
+          })) || []
+      },
+        quantity: item.quantity,
+        size_breakdown: item.sizeBreakdown,
+        team_builder_enabled: item.teamBuilderEnabled,
+        price_override: item.priceOverride,
+        item_notes: item.itemNotes,
+        comments:item.comments
+        
+      })),
+      comments:order.comments
       };
     });
 
@@ -386,44 +347,31 @@ exports.getAllOrders = async (req, res) => {
 
 
 exports.getOrder=async (req,res) => {
-    const orderId=parseInt(req.params.id)
-    try {
+  try {
     
+    const {id}=req.params
 
     const order = await prisma.order.findUnique({
-      where: { orderId },
+      where: { id:parseInt(id) },
       include: {  
         customer: true,
-        orderItems: {
+        items: {
           include: {
             product: {
               include: {
-                service: {
-                  include: {
-                    workflow: {
-                      include: {
-                        stages: {
-                          orderBy: { orderSequence: 'asc' }
-                        }
-                      }
-                    }
-                  }
+                service:true,
+                stages: {
+                  orderBy: { orderSequence: 'asc' }
                 }
               }
             },
-            teamBuilderDetails: true,
-            workflowStates: {
-              include: {
-                stage: true,
-                assignedToUser: true
-              },
-              orderBy: { createdAt: 'desc' }
-            }
+            comments:true
+           
+            
           }
         },
-        activityLogs: {
-          orderBy: { createdAt: 'desc' }
-        }
+        comments:true
+       
       }
     });
 
@@ -432,24 +380,12 @@ exports.getOrder=async (req,res) => {
     }
 
     // Calculate total amount
-    const totalAmount = order.orderItems.reduce((sum, item) => {
+    const totalAmount = order.items.reduce((sum, item) => {
       const price = item.priceOverride || item.product.price;
       return sum + (price * item.quantity);
     }, 0);
 
-    // Format workflow states with progress
-    const workflowProgress = {};
-    order.orderItems.forEach(item => {
-      if (item.product.service?.workflow) {
-        const totalStages = item.product.service.workflow.stages.length;
-        const completedStages = item.workflowStates.filter(s => s.status === 'Completed').length;
-        workflowProgress[item.id] = {
-          completed: completedStages,
-          total: totalStages,
-          percentage: Math.round((completedStages / totalStages) * 100)
-        };
-      }
-    });
+    
 
     // Format response
     const formattedOrder = {
@@ -462,33 +398,33 @@ exports.getOrder=async (req,res) => {
       total_amount: totalAmount,
       created_date: order.createdAt,
       created_by: order.createdBy,
-      order_items: order.orderItems.map(item => ({
+      order_items: order.items.map(item => ({
         id: item.id,
         product: {
-          id: item.product.id,
-          title: item.product.title,
-          price: item.product.price,
-          color: item.product.color,
-          category: item.product.category,
-          sku: item.product.sku,
-          service: item.product.service?.title,
-          workflow: item.product.service?.workflow?.title,
-          workflowStages: item.product.service?.workflow?.stages?.map(stage => ({
-            id: stage.id,
+        id: item.product.id,
+        title: item.product.title,
+        price: item.product.price,
+        color: item.product.color,
+        category: item.product.category,
+        sku: item.product.sku,
+        service: item.product.service?.title || null,
+        stages: item.product.stages?.map(stage => ({
+            state: stage.state,
             name: stage.name,
-            dueDays: stage.dueDays
-          }))
-        },
+            due_days: stage.dueDays,
+            order_sequence: stage.orderSequence
+          })) || []
+      },
         quantity: item.quantity,
         size_breakdown: item.sizeBreakdown,
         team_builder_enabled: item.teamBuilderEnabled,
         price_override: item.priceOverride,
         item_notes: item.itemNotes,
-        team_builder_details: item.teamBuilderDetails,
-        workflow_states: item.workflowStates,
-        workflow_progress: workflowProgress[item.id]
+        comments:item.comments
+        
       })),
-      activity_logs: order.activityLogs
+      comments:order.comments
+      
     };
 
     return res.status(200).json({
@@ -504,3 +440,50 @@ exports.getOrder=async (req,res) => {
     });
   }
 }
+
+
+exports.createOrderComment = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { commentText, parentCommentId, orderItemId, commentBy } = req.body;
+
+    // Validate required fields
+    if (!commentText) {
+      return res.status(400).json({ error: 'Comment text is required' });
+    }
+
+    const comment = await prisma.orderComment.create({
+      data: {
+        commentText,
+        commentBy: commentBy || req.user?.username || 'Anonymous',
+        orderId: parseInt(orderId),
+        orderItemId: orderItemId ? parseInt(orderItemId) : null,
+        parentCommentId: parentCommentId ? parseInt(parentCommentId) : null
+      }
+      // include: {
+      //   order: {
+      //     select: { id: true, orderTitle: true }
+      //   },
+      //   orderItem: {
+      //     select: { id: true, productName: true }
+      //   },
+      //   parentComment: {
+      //     select: { id: true, commentText: true }
+      //   }
+      // }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Comment added successfully',
+      comment
+    });
+
+  } catch (error) {
+    console.error('Error creating order comment:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Failed to create comment' 
+    });
+  }
+};

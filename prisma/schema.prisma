@@ -160,7 +160,7 @@ model OrderFile {
 
 model OrderComment {
   id              Int        @id @default(autoincrement())
-  orderId         Int
+  orderId         Int?
   orderItemId     Int?
   commentText     String     @db.Text
   commentBy       String?    @db.VarChar(100)
@@ -168,7 +168,7 @@ model OrderComment {
   parentCommentId Int?
   createdAt       DateTime   @default(now()) @db.DateTime(0)
   updatedAt       DateTime   @default(now()) @db.DateTime(0)
-  order           Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order           Order?      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderItem       OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   parentComment   OrderComment? @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
   replies         OrderComment[] @relation("CommentReplies")
