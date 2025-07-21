@@ -151,3 +151,44 @@ exports.deactiveUsers=async (req,res) => {
          res.status(400).json({ error: error.message });
     }
 }
+
+
+exports.editActiveDeactiveUser = async (req, res) => {
+  try {
+    const {id} = req.params;
+    
+    const user= await prisma.user.findUnique({
+        where:{id:parseInt(id)},
+        select:{isActive:true}
+
+    })
+
+    const updatedUser=await prisma.user.update({
+        where:{id:parseInt(id)},
+        data:{isActive:!user.isActive},
+        select:{
+            id: true,
+        username: true,
+        email: true,
+        isActive: true
+        }
+    })
+
+
+    
+    res.status(200).json({
+      success: true,
+      message: `User ${updatedUser.username} has been ${
+        updatedUser.isActive ? 'activated' : 'deactivated'
+      } successfully`,
+      user: updatedUser
+    });
+   
+    
+
+    
+   
+  } catch (error) {
+    res.status(400).json({error: error.message});
+  }
+}

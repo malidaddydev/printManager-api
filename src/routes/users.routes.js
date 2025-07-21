@@ -12,5 +12,6 @@ router.get('/deactive',usersController.deactiveUsers)
 router.get('/:id',usersController.singleUser)
 router.put('/:id',usersController.updateUser)
 router.delete('/:id',usersController.deleteUser)
+router.patch('/:id/toggle-status',usersController.editActiveDeactiveUser)
 
 module.exports = router;
