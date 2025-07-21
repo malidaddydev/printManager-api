@@ -472,21 +472,29 @@ exports.deleteOrder=async (req,res) => {
 exports.createOrderComment = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { commentText, parentCommentId, orderItemId, commentBy } = req.body;
+    const { commentText, parentCommentId, orderItemId, commentBy, is_internal } = req.body;
 
+    let publicComment={
+      commentText,
+      commentBy: commentBy || req.user?.username || 'Anonymous',
+      orderId: parseInt(orderId),
+      orderItemId: orderItemId ? parseInt(orderItemId) : null,
+      parentCommentId: parentCommentId ? parseInt(parentCommentId) : null
+      
+
+    }
     // Validate required fields
     if (!commentText) {
       return res.status(400).json({ error: 'Comment text is required' });
     }
+    if (is_internal) {
+      publicComment.is_internal=is_internal
+    }
 
     const comment = await prisma.orderComment.create({
-      data: {
-        commentText,
-        commentBy: commentBy || req.user?.username || 'Anonymous',
-        orderId: parseInt(orderId),
-        orderItemId: orderItemId ? parseInt(orderItemId) : null,
-        parentCommentId: parentCommentId ? parseInt(parentCommentId) : null
-      }
+      data: publicComment
+        
+      
       // include: {
       //   order: {
       //     select: { id: true, orderTitle: true }

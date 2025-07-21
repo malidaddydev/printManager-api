@@ -6,11 +6,15 @@ const authRoutes = require('./routes/auth.routes');
 const customerRoutes = require('./routes/customer.routes');
 const orderRoutes = require('./routes/order.routes');
 const {authenticate} = require('./middlewares/auth.middleware');
+const uploadRoutes = require('./routes/upload.routes');
 const cors = require('cors');
+
 
 const path = require('path');
 
 const app = express();
+
+
 
 // Middleware
 app.use(express.json());
@@ -18,6 +22,7 @@ app.use(cors());
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads'))); // serve files
 
 // Routes
 // app.use('/api/products', productRoutes);
@@ -27,6 +32,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api', uploadRoutes);
 
 
 

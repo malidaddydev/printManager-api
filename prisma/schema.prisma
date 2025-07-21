@@ -172,6 +172,7 @@ model OrderComment {
   orderItem       OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   parentComment   OrderComment? @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
   replies         OrderComment[] @relation("CommentReplies")
+  is_internal     Boolean   @default(false)
 
   @@index([orderId])
   @@index([orderItemId])
