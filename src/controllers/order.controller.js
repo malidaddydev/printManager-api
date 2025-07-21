@@ -442,6 +442,33 @@ exports.getOrder=async (req,res) => {
 }
 
 
+
+
+
+// delete single order 
+exports.deleteOrder=async (req,res) => {
+    try {
+        const { id } = req.params;
+        const order=await prisma.order.delete({
+            where:{id:Number(id)}
+        });
+         res.status(200).json({ message: "User deleted successfully", order });
+    } catch (error) {
+         res.status(400).json({ error: error.message });
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 exports.createOrderComment = async (req, res) => {
   try {
     const { orderId } = req.params;
