@@ -2,10 +2,10 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const path = require('path');
 
-// Create Product with uploaded files
+// Create Product with uploaded files and sizeQuantities
 exports.createProduct = async (req, res) => {
   try {
-    const { title, unitPrice, serviceId, category, colorOptions } = req.body;
+    const { title, unitPrice, serviceId, category, colorOptions, sizeQuantities } = req.body;
 
     if (!title || !unitPrice || !serviceId || !category) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -17,23 +17,34 @@ exports.createProduct = async (req, res) => {
       path: `/productuploads/${file.filename}`
     })) || [];
 
+    // Parse colorOptions and sizeQuantities if sent as strings
+    const parsedColorOptions = colorOptions ? JSON.parse(colorOptions) : [];
+    const parsedSizeQuantities = sizeQuantities ? JSON.parse(sizeQuantities) : [];
+
     const newProduct = await prisma.product.create({
       data: {
         title,
         unitPrice: parseFloat(unitPrice),
         serviceId: parseInt(serviceId),
         category,
-        colorOptions: colorOptions ? JSON.parse(colorOptions) : [],
+        colorOptions: parsedColorOptions,
         files: {
           create: uploadedFiles.map(f => ({
-            filename: f.filename,
-            filepath: f.path,
-            productId: 0 // placeholder
+            fileName: f.filename,
+            filePath: f.path
+          }))
+        },
+        sizeQuantities: {
+          create: parsedSizeQuantities.map(sq => ({
+            Size: sq.Size,
+            Price: sq.Price,
+            Quantity: sq.Quantity
           }))
         }
       },
       include: {
-        files: true
+        files: true,
+        sizeQuantities: true
       }
     });
 
@@ -50,7 +61,8 @@ exports.getAllProducts = async (req, res) => {
     const products = await prisma.product.findMany({
       include: {
         files: true,
-        service: true
+        service: true,
+        sizeQuantities: true
       }
     });
     res.json(products);
@@ -69,7 +81,8 @@ exports.getProductById = async (req, res) => {
       where: { id: parseInt(id) },
       include: {
         files: true,
-        service: true
+        service: true,
+        sizeQuantities: true
       }
     });
 
@@ -85,26 +98,72 @@ exports.getProductById = async (req, res) => {
 // Update product
 exports.updateProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { title, unitPrice, serviceId, category, colorOptions } = req.body;
+    const productId = parseInt(req.params.id);
+    const { title, unitPrice, serviceId, category, colorOptions, sizeQuantities } = req.body;
+
+    const existingProduct = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { files: true, sizeQuantities: true }
+    });
+
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const uploadedFiles = req.files?.map(file => ({
+      filename: file.filename,
+      path: `/productuploads/${file.filename}`
+    })) || [];
+
+    // Parse colorOptions and sizeQuantities if sent as strings
+    const parsedColorOptions = colorOptions ? JSON.parse(colorOptions) : [];
+    const parsedSizeQuantities = sizeQuantities ? JSON.parse(sizeQuantities) : [];
+
+    // Delete existing files if new ones are uploaded
+    if (uploadedFiles.length > 0) {
+      await prisma.orderFile.deleteMany({
+        where: { productId }
+      });
+    }
+
+    // Delete existing sizeQuantities before re-adding
+    await prisma.sizeQuantities.deleteMany({
+      where: { productId }
+    });
 
     const updatedProduct = await prisma.product.update({
-      where: { id: parseInt(id) },
+      where: { id: productId },
       data: {
         title,
         unitPrice: parseFloat(unitPrice),
         serviceId: parseInt(serviceId),
         category,
-        colorOptions: colorOptions ? JSON.parse(colorOptions) : undefined
+        colorOptions: parsedColorOptions,
+        ...(uploadedFiles.length > 0 && {
+          files: {
+            create: uploadedFiles.map(f => ({
+              fileName: f.filename,
+              filePath: f.path
+            }))
+          }
+        }),
+        sizeQuantities: {
+          create: parsedSizeQuantities.map(sq => ({
+            Size: sq.Size,
+            Price: sq.Price,
+            Quantity: sq.Quantity
+          }))
+        }
+      },
+      include: {
+        files: true,
+        sizeQuantities: true
       }
     });
 
-    res.json(updatedProduct);
+    res.status(200).json(updatedProduct);
   } catch (error) {
     console.error("Update Product Error:", error);
-    if (error.code === 'P2025') {
-      return res.status(404).json({ message: "Product not found" });
-    }
     res.status(500).json({ message: "Internal server error" });
   }
 };
