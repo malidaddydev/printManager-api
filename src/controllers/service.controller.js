@@ -29,8 +29,11 @@ exports.getAllServices = async (req, res) => {
   try {
     const services = await prisma.service.findMany({
       include: {
-        workflow: true,
-        products: true
+        workflow: {
+            include:{stages:true}
+        },
+        products: true,
+
       }
     });
 

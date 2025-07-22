@@ -30,10 +30,10 @@ app.use('/uploads', express.static(path.join(__dirname, '../public/uploads'))); 
 // Routes
 // app.use('/api/users', authenticate, usersRoutes);
 // app.use('/api/users', authenticate, usersRoutes);
-// app.use('/api/products', productRoutes);
+app.use('/api/products', productRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/services', serviceRoutes);
-// app.use('/api/stages', stageRoutes);
+app.use('/api/stages', stageRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);

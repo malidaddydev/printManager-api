@@ -26,13 +26,7 @@ exports.createWorkflow = async (req, res) => {
     const newWorkflow = await prisma.workflow.create({
       data: {
         title,
-        stages: {
-          create: stages.map(stage => ({
-            title: stage.title,
-            color: stage.color,
-            days: stage.days
-          }))
-        }
+        
       },
       include: {
         stages: true
