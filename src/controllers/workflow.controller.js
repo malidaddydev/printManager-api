@@ -2,21 +2,46 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // CREATE Workflow
+
+
 exports.createWorkflow = async (req, res) => {
   try {
-    const { title } = req.body;
+    const { title, stages } = req.body;
 
     if (!title) {
       return res.status(400).json({ message: "Title is required" });
     }
 
-    const workflow = await prisma.workflow.create({
-      data: { title }
+    if (!Array.isArray(stages) || stages.length === 0) {
+      return res.status(400).json({ message: "At least one stage is required" });
+    }
+
+    // Validate each stage
+    for (const stage of stages) {
+      if (!stage.title || !stage.color || typeof stage.days !== 'number') {
+        return res.status(400).json({ message: "Each stage must include title, color, and days" });
+      }
+    }
+
+    const newWorkflow = await prisma.workflow.create({
+      data: {
+        title,
+        stages: {
+          create: stages.map(stage => ({
+            title: stage.title,
+            color: stage.color,
+            days: stage.days
+          }))
+        }
+      },
+      include: {
+        stages: true
+      }
     });
 
-    res.status(201).json(workflow);
+    res.status(201).json(newWorkflow);
   } catch (error) {
-    console.error("Create Workflow Error:", error);
+    console.error("Create Workflow with Stages Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
