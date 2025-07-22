@@ -1,6 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const productRoutes = require('./routes/product.routes');
+const workflowRoutes = require('./routes/workflow.routes');
+const serviceRoutes = require('./routes/service.routes');
+const stageRoutes = require('./routes/stage.routes');
 const usersRoutes = require('./routes/users.routes');
 const authRoutes = require('./routes/auth.routes');
 const customerRoutes = require('./routes/customer.routes');
@@ -25,9 +28,12 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads'))); // serve files
 
 // Routes
+// app.use('/api/users', authenticate, usersRoutes);
+// app.use('/api/users', authenticate, usersRoutes);
 // app.use('/api/products', productRoutes);
-// app.use('/api/users', authenticate, usersRoutes);
-// app.use('/api/users', authenticate, usersRoutes);
+app.use('/api/workflows', workflowRoutes);
+// app.use('/api/services', serviceRoutes);
+// app.use('/api/stages', stageRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);

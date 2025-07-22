@@ -32,96 +32,143 @@ const workflowTemplates = {
 
 
 
-
-
-
-
 exports.createOrder = async (req, res) => {
   try {
-    const { customer, order } = req.body;
+    const {
+      orderNumber,
+      title,
+      status,
+      startDate,
+      dueDate,
+      notes,
+      customerId,
+      items,
+    } = req.body;
 
-    // Step 1: Create or find customer
-    const existingCustomer = await prisma.customer.findFirst({
-      where: { email: customer.email }
-    });
-
-    const customerRecord = existingCustomer || await prisma.customer.create({ data: customer });
-
-    // Step 2: Create Order
-    const orderData = await prisma.order.create({
+    const order = await prisma.order.create({
       data: {
-        customerId: customerRecord.id,
-        orderTitle: order.order_title,
-        dueDate: new Date(order.due_date),
-        status: order.status || "Draft",
-        notes: order.notes,
-        createdBy: req.user?.id || "system",
-        updatedBy: req.user?.id || "system"
+        orderNumber,
+        title,
+        status,
+        startDate: new Date(startDate),
+        dueDate: new Date(dueDate),
+        notes,
+        customerId,
+        items: {
+          create: items.map(item => ({
+            productId: item.productId,
+            color: item.color,
+            price: item.price,
+            quantity: item.quantity,
+            sizeBreakdown: item.sizeBreakdown
+            
+          }))
+        }
+      },
+      include: {
+        items: {
+          include: {
+            sizeBreakdown: true
+          }
+        }
       }
     });
 
-    // Step 3: Create Order Items with Products
-    const createdItems = await Promise.all(
-      order.order_items.map(async (item) => {
-        // First create the product for this order item
-        const product = await prisma.product.create({
-          data: {
-            title: item.product.title,
-            price: item.product.price,
-            color: item.product.color,
-            category: item.product.category, // "Goods with Service" or "Service"
-            serviceId: item.product.service_id,
-            sku: item.product.sku,
-            turnaroundDays: item.product.turnaround_days,
-            requiresCustomerGarment: item.product.requires_customer_garment || false,
-            active: true,
-            createdBy: req.user?.id || "system",
-            updatedBy: req.user?.id || "system",
-            stages: {
-                    create: item.product.stages.map((stage, index) => ({
-                      state: stage.state,
-                      name: stage.name,
-                      dueDays: stage.dueDays,
-                      orderSequence: stage.orderSequence || index + 1,
-                      createdAt: new Date(),
-                      updatedAt: new Date(),
-                      createdBy: req.user?.id || "system",
-                      updatedBy: req.user?.id || "system"
-                    }))
-                  }
-      },
-      include: { stages: true }
-    });
+    res.status(201).json({ success: true, order });
+  } catch (error) {
+    console.error('Create Order Error:', error);
+    res.status(500).json({ success: false, message: 'Something went wrong.', error: error.message });
+  }
+};
+
+
+
+// exports.createOrder = async (req, res) => {
+//   try {
+//     const { customer, order } = req.body;
+
+//     // Step 1: Create or find customer
+//     const existingCustomer = await prisma.customer.findFirst({
+//       where: { email: customer.email }
+//     });
+
+//     const customerRecord = existingCustomer || await prisma.customer.create({ data: customer });
+
+//     // Step 2: Create Order
+//     const orderData = await prisma.order.create({
+//       data: {
+//         customerId: customerRecord.id,
+//         orderTitle: order.order_title,
+//         dueDate: new Date(order.due_date),
+//         status: order.status || "Draft",
+//         notes: order.notes,
+//         createdBy: req.user?.id || "system",
+//         updatedBy: req.user?.id || "system"
+//       }
+//     });
+
+//     // Step 3: Create Order Items with Products
+//     const createdItems = await Promise.all(
+//       order.order_items.map(async (item) => {
+//         // First create the product for this order item
+//         const product = await prisma.product.create({
+//           data: {
+//             title: item.product.title,
+//             price: item.product.price,
+//             color: item.product.color,
+//             category: item.product.category, // "Goods with Service" or "Service"
+//             serviceId: item.product.service_id,
+//             sku: item.product.sku,
+//             turnaroundDays: item.product.turnaround_days,
+//             requiresCustomerGarment: item.product.requires_customer_garment || false,
+//             active: true,
+//             createdBy: req.user?.id || "system",
+//             updatedBy: req.user?.id || "system",
+//             stages: {
+//                     create: item.product.stages.map((stage, index) => ({
+//                       state: stage.state,
+//                       name: stage.name,
+//                       dueDays: stage.dueDays,
+//                       orderSequence: stage.orderSequence || index + 1,
+//                       createdAt: new Date(),
+//                       updatedAt: new Date(),
+//                       createdBy: req.user?.id || "system",
+//                       updatedBy: req.user?.id || "system"
+//                     }))
+//                   }
+//       },
+//       include: { stages: true }
+//     });
 
         
 
 
-        // Then create the order item linking to the product
-        const orderItem = await prisma.orderItem.create({
-          data: {
-            orderId: orderData.id,
-            productId: product.id,
-            quantity: item.quantity,
-            sizeBreakdown: item.size_breakdown, // JSON string like "S:3,M:5,L:2"
-            teamBuilderEnabled: item.team_builder_enabled || false,
-            priceOverride: item.price_override,
-            itemNotes: item.item_notes,
-            createdBy: req.user?.id || "system",
-            updatedBy: req.user?.id || "system"
-          },
-          include: { 
-            product: {
-              include: {
-                service:true,
-                        stages: {
-                          orderBy: { orderSequence: 'asc' }
-                        }
-                      }
-                    }
-                  }
+//         // Then create the order item linking to the product
+//         const orderItem = await prisma.orderItem.create({
+//           data: {
+//             orderId: orderData.id,
+//             productId: product.id,
+//             quantity: item.quantity,
+//             sizeBreakdown: item.size_breakdown, // JSON string like "S:3,M:5,L:2"
+//             teamBuilderEnabled: item.team_builder_enabled || false,
+//             priceOverride: item.price_override,
+//             itemNotes: item.item_notes,
+//             createdBy: req.user?.id || "system",
+//             updatedBy: req.user?.id || "system"
+//           },
+//           include: { 
+//             product: {
+//               include: {
+//                 service:true,
+//                         stages: {
+//                           orderBy: { orderSequence: 'asc' }
+//                         }
+//                       }
+//                     }
+//                   }
                 
 
-              })
+//               })
                   
                 
               
@@ -129,85 +176,85 @@ exports.createOrder = async (req, res) => {
           
         
 
-        // Update the product to reference the order item (1:1 relationship)
-        await prisma.product.update({
-          where: { id: product.id },
-          data: { orderItemId: orderItem.id }
-        });
+//         // Update the product to reference the order item (1:1 relationship)
+//         await prisma.product.update({
+//           where: { id: product.id },
+//           data: { orderItemId: orderItem.id }
+//         });
 
-        return orderItem;
-      })
-    );
-
-    
+//         return orderItem;
+//       })
+//     );
 
     
 
-   // Step 4: Calculate total amount
-const totalAmount = createdItems.reduce((sum, item) => {
-  const price = item.priceOverride ?? item.product?.price ?? 0;
-  return sum + (item.quantity * price);
-}, 0);
+    
 
-// Update order with total amount
-await prisma.order.update({
-  where: { id: orderData.id },
-  data: { totalAmount }
-});
+//    // Step 4: Calculate total amount
+// const totalAmount = createdItems.reduce((sum, item) => {
+//   const price = item.priceOverride ?? item.product?.price ?? 0;
+//   return sum + (item.quantity * price);
+// }, 0);
 
-    // Step 8: Return formatted response
-    return res.status(201).json({
-  message: "Order created successfully",
-  order: {
-    id: orderData.id,
-    title: orderData.orderTitle,
-    due_date: orderData.dueDate,
-    status: orderData.status,
-    notes: orderData.notes,
-    total_amount: totalAmount,
-    created_at: orderData.createdAt,
-    created_by: orderData.createdBy,
-    customer: {
-      id: customerRecord.id,
-      name: customerRecord.name,
-      email: customerRecord.email,
-      phone: customerRecord.phone,
-      address: customerRecord.address
-    },
-    order_items: createdItems.map(item => ({
-      id: item.id,
-      quantity: item.quantity,
-      size_breakdown: item.sizeBreakdown,
-      team_builder_enabled: item.teamBuilderEnabled,
-      price_override: item.priceOverride,
-      item_notes: item.itemNotes,
-      product: {
-        id: item.product.id,
-        title: item.product.title,
-        price: item.product.price,
-        color: item.product.color,
-        category: item.product.category,
-        sku: item.product.sku,
-        service: item.product.service?.title || null,
-        stages: item.product.stages?.map(stage => ({
-            state: stage.state,
-            name: stage.name,
-            due_days: stage.dueDays,
-            order_sequence: stage.orderSequence
-          })) || []
-      }
-    }))
-  }
-});
+// // Update order with total amount
+// await prisma.order.update({
+//   where: { id: orderData.id },
+//   data: { totalAmount }
+// });
 
-  } catch (error) {
-    console.error('Order creation error:', error);
-    return res.status(500).json({ 
-      message: "Order creation failed", 
-      error: error.message 
-    });
-  }
-};
+//     // Step 8: Return formatted response
+//     return res.status(201).json({
+//   message: "Order created successfully",
+//   order: {
+//     id: orderData.id,
+//     title: orderData.orderTitle,
+//     due_date: orderData.dueDate,
+//     status: orderData.status,
+//     notes: orderData.notes,
+//     total_amount: totalAmount,
+//     created_at: orderData.createdAt,
+//     created_by: orderData.createdBy,
+//     customer: {
+//       id: customerRecord.id,
+//       name: customerRecord.name,
+//       email: customerRecord.email,
+//       phone: customerRecord.phone,
+//       address: customerRecord.address
+//     },
+//     order_items: createdItems.map(item => ({
+//       id: item.id,
+//       quantity: item.quantity,
+//       size_breakdown: item.sizeBreakdown,
+//       team_builder_enabled: item.teamBuilderEnabled,
+//       price_override: item.priceOverride,
+//       item_notes: item.itemNotes,
+//       product: {
+//         id: item.product.id,
+//         title: item.product.title,
+//         price: item.product.price,
+//         color: item.product.color,
+//         category: item.product.category,
+//         sku: item.product.sku,
+//         service: item.product.service?.title || null,
+//         stages: item.product.stages?.map(stage => ({
+//             state: stage.state,
+//             name: stage.name,
+//             due_days: stage.dueDays,
+//             order_sequence: stage.orderSequence
+//           })) || []
+//       }
+//     }))
+//   }
+// });
+
+//   } catch (error) {
+//     console.error('Order creation error:', error);
+//     return res.status(500).json({ 
+//       message: "Order creation failed", 
+//       error: error.message 
+//     });
+//   }
+// };
 
 
 

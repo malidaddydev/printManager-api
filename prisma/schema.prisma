@@ -35,127 +35,113 @@ model Customer {
 }
 
 model Order {
-  id          Int             @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   customerId  Int
-  orderTitle  String?         @db.VarChar(255)
-  dueDate     DateTime        @db.DateTime(0)
-  status      String          @default("Draft") @db.VarChar(50)
-  notes       String?         @db.Text
-  totalAmount Float?          @db.Float
-  createdBy   String?         @db.VarChar(100)
-  updatedBy   String?         @db.VarChar(100)
-  createdAt   DateTime        @default(now()) @db.DateTime(0)
-  updatedAt   DateTime        @default(now()) @db.DateTime(0)
-  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  comments    OrderComment[]
-  items       OrderItem[]
-  activityLogs ActivityLog[]
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  orderNumber String       @db.VarChar(100)  // "ORD 1234"
+  title       String       @db.VarChar(255)  // Title field in form
+  status      String       @default("Draft") @db.VarChar(50) // Draft / Processing / Production / Ready
+  startDate   DateTime?    @db.DateTime(0)   // Start Date
+  dueDate     DateTime     @db.DateTime(0)   // Due Date
+  notes       String?      @db.Text          // Notes
+  files       OrderFile[]                     // File uploads (multi-file)
+
+  items       OrderItem[]  // 1-to-many with OrderItem
+  comments            OrderComment[]
 
   @@index([customerId])
 }
 
 model OrderItem {
-  id                 Int                  @id @default(autoincrement())
-  orderId            Int
-  productId          Int                  @unique // One-to-one relationship
-  quantity           Int
-  sizeBreakdown      String?              @db.Text // JSON string for size breakdown
-  teamBuilderEnabled Boolean              @default(false)
-  priceOverride      Float?               @db.Float
-  itemNotes          String?              @db.Text
-  createdBy          String?              @db.VarChar(100)
-  updatedBy          String?              @db.VarChar(100)
-  createdAt          DateTime             @default(now()) @db.DateTime(0)
-  updatedAt          DateTime             @default(now()) @db.DateTime(0)
-  order              Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product            Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
-  files              OrderFile[]
-  comments           OrderComment[]
-  teamBuilderDetails TeamBuilderDetail[]
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  productId  Int
+  color      String?  @db.VarChar(100) // Color dropdown
+  quantity   Int                              // Total quantity (sum of sizes)
+  price      Float                            // Single price value or overridden total
+  sizeBreakdown String?  @db.VarChar(100)               
+
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  comments            OrderComment[]
   
 
   @@index([orderId])
   @@index([productId])
 }
 
-model Product {
-  id                      Int        @id @default(autoincrement())
-  orderItemId             Int?        @unique // One-to-one relationship
-  title                   String     @db.VarChar(255)
-  price                   Float      @db.Float
-  color                   String?    @db.VarChar(100)
-  category                String     @db.VarChar(100) // "Goods with Service" or "Service"
-  serviceId               Int
-  sku                     String?    @db.VarChar(100)
-  turnaroundDays          Int?
-  requiresCustomerGarment Boolean    @default(false)
-  active                  Boolean    @default(true)
-  createdBy               String?    @db.VarChar(100)
-  updatedBy               String?    @db.VarChar(100)
-  createdAt               DateTime   @default(now()) @db.DateTime(0)
-  updatedAt               DateTime   @default(now()) @db.DateTime(0)
-  orderItem               OrderItem?
-  service                 Service    @relation(fields: [serviceId], references: [id], onDelete: Restrict)
-  stages                  WorkflowStage[] @relation("ProductWorkflowStages")
 
-  @@index([serviceId])
+enum ProductCategory {
+  GOODS_WITH_SERVICE
+  SERVICE
+}
+
+
+model Product {
+  id           Int         @id @default(autoincrement())
+  serviceId    Int          
+  title        String      // From UI (required)
+  files               OrderFile[]
+  unitPrice    Float       // From UI
+  category     ProductCategory
+  colorOptions Json?    // Array of colors
+  orderItems   OrderItem[] // 1-to-many with OrderItem (existing)
+  service      Service?    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 }
 
 model Service {
-  id        Int       @id @default(autoincrement())
-  workflowId Int?     @unique
-  title     String    @db.VarChar(255)
-  color     String?   @db.VarChar(20) // UI color code
-  basePrice Float?    @db.Float
-  active    Boolean   @default(true)
-  createdBy String?   @db.VarChar(100)
-  updatedBy String?   @db.VarChar(100)
-  createdAt DateTime  @default(now()) @db.DateTime(0)
-  updatedAt DateTime  @default(now()) @db.DateTime(0)
-  products  Product[]
-  
+  id          Int       @id @default(autoincrement())
+  title       String    // From UI (required)
+  workflow    Workflow? @relation(fields: [workflowId], references: [id]) // Optional workflow
+  workflowId  Int?
+  products    Product[] // 1-to-many with Product (a service can be used by multiple products)
+}
+
+model Workflow {
+  id          Int      @id @default(autoincrement())
+  title       String   // From UI (required)
+  stages      Stage[]  // 1-to-many with Stage
+  services    Service[] // 1-to-many with Service
+}
+
+model Stage {
+  id          Int       @id @default(autoincrement())
+  title       String    // From UI (required)
+  color       String    // Hex color code
+  days        Int       // Duration in days
+  workflow    Workflow? @relation(fields: [workflowId], references: [id])
+  workflowId  Int?      // Many-to-1 with Workflow (many stages belong to one workflow)
 }
 
 
 
-model WorkflowStage {
-  id            Int             @id @default(autoincrement())
-  productId     Int
-  state         String          @db.VarChar(100) // Machine-readable code
-  name          String          @db.VarChar(255) // Display name
-  dueDays       Int             // Days from start
-  orderSequence Int             // Stage order
-  active        Boolean         @default(true)
-  createdAt     DateTime        @default(now()) @db.DateTime(0)
-  updatedAt     DateTime        @default(now()) @db.DateTime(0)
-  createdBy     String?         @db.VarChar(100)
-  updatedBy     String?         @db.VarChar(100)
-  files         OrderFile[]
-  product       Product         @relation("ProductWorkflowStages", fields: [productId], references: [id], onDelete: Cascade)
 
- 
-}
+
 
 
 
 model OrderFile {
-  id           Int           @id @default(autoincrement())
-  orderItemId  Int
-  fileName     String        @db.VarChar(255)
-  filePath     String        @db.VarChar(500)
-  stageId      Int?
-  isApproved   Boolean       @default(false)
-  approvedBy   String?       @db.VarChar(100)
-  approvedAt   DateTime?     @db.DateTime(0)
-  uploadedBy   String?       @db.VarChar(100)
-  uploadedAt   DateTime      @default(now()) @db.DateTime(0)
-  createdAt    DateTime      @default(now()) @db.DateTime(0)
-  updatedAt    DateTime      @default(now()) @db.DateTime(0)
-  orderItem    OrderItem     @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  stage        WorkflowStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  id           Int       @id @default(autoincrement())
+  productId    Int
+  orderId      Int?
 
-  @@index([orderItemId])
-  @@index([stageId])
+  fileName     String    @db.VarChar(255)
+  filePath     String    @db.VarChar(500)
+  isApproved   Boolean   @default(false)
+  approvedBy   String?   @db.VarChar(100)
+  approvedAt   DateTime? @db.DateTime(0)
+  uploadedBy   String?   @db.VarChar(100)
+  uploadedAt   DateTime  @default(now()) @db.DateTime(0)
+  createdAt    DateTime  @default(now()) @db.DateTime(0)
+  updatedAt    DateTime  @default(now()) @db.DateTime(0)
+
+ 
+  order        Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model OrderComment {
@@ -179,31 +165,3 @@ model OrderComment {
   @@index([parentCommentId])
 }
 
-model TeamBuilderDetail {
-  id           Int       @id @default(autoincrement())
-  orderItemId  Int
-  size         String    @db.VarChar(10)
-  jerseyName   String?   @db.VarChar(100)
-  jerseyNumber String?   @db.VarChar(10)
-  quantity     Int
-  createdAt    DateTime  @default(now()) @db.DateTime(0)
-  updatedAt    DateTime  @default(now()) @db.DateTime(0)
-  orderItem    OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-
-  @@index([orderItemId])
-}
-
-model ActivityLog {
-  id             Int      @id @default(autoincrement())
-  orderId        Int
-  action         String   @db.VarChar(255)
-  actionBy       String?  @db.VarChar(100)
-  actionAt       DateTime @default(now()) @db.DateTime(0)
-  details        String?  @db.Text
-  tableAffected  String?  @db.VarChar(100)
-  recordId       String?  @db.VarChar(100)
-  createdAt      DateTime @default(now()) @db.DateTime(0)
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId])
-}
