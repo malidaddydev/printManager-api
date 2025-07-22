@@ -6,30 +6,18 @@ const prisma = new PrismaClient();
 
 exports.createWorkflow = async (req, res) => {
   try {
-    const { title, stages } = req.body;
+    const { title} = req.body;
 
     if (!title) {
       return res.status(400).json({ message: "Title is required" });
     }
 
-    if (!Array.isArray(stages) || stages.length === 0) {
-      return res.status(400).json({ message: "At least one stage is required" });
-    }
-
-    // Validate each stage
-    for (const stage of stages) {
-      if (!stage.title || !stage.color || typeof stage.days !== 'number') {
-        return res.status(400).json({ message: "Each stage must include title, color, and days" });
-      }
-    }
+    
 
     const newWorkflow = await prisma.workflow.create({
       data: {
         title,
         
-      },
-      include: {
-        stages: true
       }
     });
 
@@ -113,6 +101,50 @@ exports.deleteWorkflow = async (req, res) => {
     res.json({ message: "Workflow deleted successfully" });
   } catch (error) {
     console.error("Delete Workflow Error:", error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: "Workflow not found" });
+    }
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+exports.addStagesToWorkflow = async (req, res) => {
+  const { id } = req.params;
+ 
+
+  try {
+    const {stages } = req.body;
+    if (!Array.isArray(stages) || stages.length === 0) {
+      return res.status(400).json({ message: "At least one stage is required" });
+    }
+
+    // Validate each stage
+    for (const stage of stages) {
+      if (!stage.title || !stage.color || typeof stage.days !== 'number') {
+        return res.status(400).json({ message: "Each stage must include title, color, and days" });
+      }
+    }
+    const addStagesToWorkflow = await prisma.workflow.update({
+      where: { id: parseInt(id) },
+      data: {
+        
+        stages: {
+          create: stages.map(stage => ({
+            title: stage.title,
+            color: stage.color,
+            days: stage.days
+          }))
+        }
+      },
+      include: {
+        stages: true
+      }
+    });
+
+    res.json(addStagesToWorkflow);
+  } catch (error) {
+    console.error("Update Workflow Error:", error);
     if (error.code === 'P2025') {
       return res.status(404).json({ message: "Workflow not found" });
     }
