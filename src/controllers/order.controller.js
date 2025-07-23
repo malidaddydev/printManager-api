@@ -88,7 +88,14 @@ if (typeof items === 'string') {
   }
 };
 
-
+const getAllOrders = async(req,res)=>{
+  try {
+    const allOrders = await prisma.order.findMany()
+    res.status(201).json(allOrders)
+  } catch (error) {
+    res.status(400).json({error:error.message})
+  }
+}
 
 const getProductColors = async (req, res) => {
   const productId  = req.params.id;
@@ -118,8 +125,9 @@ const getProductColors = async (req, res) => {
   }
 };
 
+
 module.exports = {
-  createOrder,getProductColors                                                                                   
+  createOrder,getAllOrders,getProductColors                                                                                   
 };
 
 
