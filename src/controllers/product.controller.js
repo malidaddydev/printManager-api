@@ -111,7 +111,7 @@ exports.updateProduct = async (req, res) => {
 
     // Parse colorOptions and sizeQuantities if sent as strings
     const parsedColorOptions = colorOptions ? JSON.parse(colorOptions) : [];
-    c
+    
 
     // Delete existing files if new ones are uploaded
     if (uploadedFiles.length > 0) {
