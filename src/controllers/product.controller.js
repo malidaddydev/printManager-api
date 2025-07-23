@@ -5,7 +5,7 @@ const path = require('path');
 // Create Product with uploaded files and sizeQuantities
 exports.createProduct = async (req, res) => {
   try {
-    const { title, unitPrice, serviceId, category, colorOptions, sizeQuantities } = req.body;
+    const { title, unitPrice, serviceId, category, colorOptions } = req.body;
 
     if (!title || !unitPrice || !serviceId || !category) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -19,7 +19,7 @@ exports.createProduct = async (req, res) => {
 
     // Parse colorOptions and sizeQuantities if sent as strings
     const parsedColorOptions = colorOptions ? JSON.parse(colorOptions) : [];
-    const parsedSizeQuantities = sizeQuantities ? JSON.parse(sizeQuantities) : [];
+    
 
     const newProduct = await prisma.product.create({
       data: {
@@ -33,18 +33,12 @@ exports.createProduct = async (req, res) => {
             fileName: f.filename,
             filePath: f.path
           }))
-        },
-        sizeQuantities: {
-          create: parsedSizeQuantities.map(sq => ({
-            Size: sq.Size,
-            Price: sq.Price,
-            Quantity: sq.Quantity
-          }))
         }
+      
       },
       include: {
         files: true,
-        sizeQuantities: true
+        
       }
     });
 
@@ -61,8 +55,8 @@ exports.getAllProducts = async (req, res) => {
     const products = await prisma.product.findMany({
       include: {
         files: true,
-        service: true,
-        sizeQuantities: true
+        service: true
+        
       }
     });
     res.json(products);
@@ -82,7 +76,7 @@ exports.getProductById = async (req, res) => {
       include: {
         files: true,
         service: true,
-        sizeQuantities: true
+        
       }
     });
 
@@ -99,11 +93,11 @@ exports.getProductById = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const productId = parseInt(req.params.id);
-    const { title, unitPrice, serviceId, category, colorOptions, sizeQuantities } = req.body;
+    const { title, unitPrice, serviceId, category, colorOptions } = req.body;
 
     const existingProduct = await prisma.product.findUnique({
       where: { id: productId },
-      include: { files: true, sizeQuantities: true }
+      include: { files: true }
     });
 
     if (!existingProduct) {
@@ -117,7 +111,7 @@ exports.updateProduct = async (req, res) => {
 
     // Parse colorOptions and sizeQuantities if sent as strings
     const parsedColorOptions = colorOptions ? JSON.parse(colorOptions) : [];
-    const parsedSizeQuantities = sizeQuantities ? JSON.parse(sizeQuantities) : [];
+    c
 
     // Delete existing files if new ones are uploaded
     if (uploadedFiles.length > 0) {
@@ -126,10 +120,7 @@ exports.updateProduct = async (req, res) => {
       });
     }
 
-    // Delete existing sizeQuantities before re-adding
-    await prisma.sizeQuantities.deleteMany({
-      where: { productId }
-    });
+   
 
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
@@ -146,18 +137,11 @@ exports.updateProduct = async (req, res) => {
               filePath: f.path
             }))
           }
-        }),
-        sizeQuantities: {
-          create: parsedSizeQuantities.map(sq => ({
-            Size: sq.Size,
-            Price: sq.Price,
-            Quantity: sq.Quantity
-          }))
-        }
+        })
       },
       include: {
         files: true,
-        sizeQuantities: true
+        
       }
     });
 

@@ -61,7 +61,7 @@ model OrderItem {
   quantity   Int                              // Total quantity (sum of sizes)
   price      Float                            // Single price value or overridden total
                 
-
+  sizeQuantities SizeQuantities[]
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   comments            OrderComment[]
@@ -88,13 +88,13 @@ model Product {
   colorOptions Json?    // Array of colors
   orderItems   OrderItem[] // 1-to-many with OrderItem (existing)
   service      Service?    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  sizeQuantities SizeQuantities[]
+  
 }
 
 model SizeQuantities{
   id           Int         @id @default(autoincrement())
-  productId  Int
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderitemId  Int
+  orderitem    OrderItem  @relation(fields: [orderitemId], references: [id], onDelete: Cascade)
   Size       String?  @db.VarChar(100)
   Price      Int
   Quantity   Int
