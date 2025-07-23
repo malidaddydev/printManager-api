@@ -22,13 +22,26 @@ const createOrder = async (req, res) => {
     })) || [];
 
     // Basic validation
-    if (!customerId || !orderNumber || !title || !dueDate) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
+    // if (!customerId || !orderNumber || !title || !dueDate) {
+    //   return res.status(400).json({ message: 'Missing required fields' });
+    // }
+
+
+    let parsedItems = [];
+
+if (typeof items === 'string') {
+  try {
+    parsedItems = JSON.parse(items);
+  } catch (e) {
+    return res.status(400).json({ message: 'Invalid JSON in items field' });
+  }
+} else {
+  parsedItems = items;
+}
 
     const newOrder = await prisma.order.create({
       data: {
-        customerId,
+        customerId:parseInt(customerId),
         orderNumber,
         title,
         status,
@@ -42,8 +55,8 @@ const createOrder = async (req, res) => {
           }))
         },
         items: {
-          create: items?.map(item => ({
-            productId: item.productId,
+          create: parsedItems?.map(item => ({
+            productId: parseInt(item.productId) ,
             color: item.color,
             quantity: item.quantity,
             price: item.price,
