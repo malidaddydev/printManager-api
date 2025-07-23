@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const path = require('path');
 
 // CREATE Order
 const createOrder = async (req, res) => {
@@ -15,6 +16,12 @@ const createOrder = async (req, res) => {
       items, // Array of order items
     } = req.body;
 
+
+    const uploadedFiles = req.files?.map(file => ({
+      filename: file.filename,
+      path: `/orderuploads/${file.filename}`
+    })) || [];
+
     // Basic validation
     if (!customerId || !orderNumber || !title || !dueDate) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -29,6 +36,12 @@ const createOrder = async (req, res) => {
         startDate: startDate ? new Date(startDate) : null,
         dueDate: new Date(dueDate),
         notes,
+        files: {
+          create: uploadedFiles.map(f => ({
+            fileName: f.filename,
+            filePath: f.path
+          }))
+        },
         items: {
           create: items?.map(item => ({
             productId: item.productId,
@@ -48,6 +61,7 @@ const createOrder = async (req, res) => {
         },
       },
       include: {
+        files: true,
         items: {
           include: { sizeQuantities: true, product: true },
         },

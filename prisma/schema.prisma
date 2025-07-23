@@ -133,7 +133,7 @@ model Stage {
 
 model OrderFile {
   id           Int       @id @default(autoincrement())
-  productId    Int
+  productId    Int?
   orderId      Int?
 
   fileName     String    @db.VarChar(255)
@@ -148,7 +148,7 @@ model OrderFile {
 
  
   order        Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product      Product?   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([productId])
