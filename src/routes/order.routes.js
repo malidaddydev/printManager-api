@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder } = require('../controllers/order.controller');
+const { createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder,orderFromToken } = require('../controllers/order.controller');
 const upload = require('../middlewares/uploadOrderFiles');
 // const { getAllOrders } = require('../controllers/order.controller');
 // const { getOrder } = require('../controllers/order.controller');
@@ -9,6 +9,7 @@ const upload = require('../middlewares/uploadOrderFiles');
 
 router.post('/', upload.array('files'), createOrder);
 router.get('/', getAllOrders);
+router.get('/token/:token', orderFromToken);
 router.get('/productColors/:id', getProductColors);
 router.get('/:id', getSingleOrders);
 router.put('/:id', updateOrder);
