@@ -28,7 +28,7 @@ const createEmailTransporter = () => {
 
 // Email template for order confirmation
 const generateOrderConfirmationEmail = (order) => {
-  const trackingUrl = `${process.env.FRONTEND_URL}/track-order/${order.token}`;
+  const trackingUrl = `https://elipsestudio.com/CustomerChecker/customercheckpage.html`;
   
   return {
     subject: `Order Confirmation - ${order.orderNumber}`,
