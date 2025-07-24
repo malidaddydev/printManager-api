@@ -14,7 +14,7 @@ exports.createProduct = async (req, res) => {
     // Save uploaded files
     const uploadedFiles = req.files?.map(file => ({
       filename: file.filename,
-      path: `/productuploads/${file.filename}`
+      path: `/orderuploads/${fileName}`
     })) || [];
 
     // Parse colorOptions and sizeQuantities if sent as strings
@@ -108,7 +108,7 @@ exports.updateProduct = async (req, res) => {
 
     const uploadedFiles = req.files?.map(file => ({
       filename: file.filename,
-      path: `/productuploads/${file.filename}`
+      path: `/orderuploads/${fileName}`
     })) || [];
 
     // Parse colorOptions and sizeQuantities if sent as strings

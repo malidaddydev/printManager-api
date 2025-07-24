@@ -1,5 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const crypto = require('crypto');
+
 
 // CREATE Order
 const createOrder = async (req, res) => {
@@ -73,6 +75,8 @@ if (typeof items === 'string') {
             },
           })) || [],
         },
+
+        token:crypto.randomBytes(3).toString('hex')
       },
       include: {
         files: true,
@@ -276,8 +280,48 @@ const deleteOrder = async (req, res) => {
 };
 
 
+
+const orderFromToken=async (req,res) => {
+  
+  const token=req.params.token;
+
+  try {
+    const existingOrder = await prisma.order.findUnique({
+      where: { token: token },
+      include: {
+        customer: true, // Get Customer details
+        items: {
+          include: {
+            product: {
+              include: {
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: true, // Workflow stages
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            sizeQuantities: true,
+            comments: true,
+          },
+        },
+        files: true,
+        comments: true,
+      }
+    });
+     res.status(200).json(existingOrder);
+  } catch (error) {
+    
+  }
+  
+}
+
 module.exports = {
-  createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder                                                                                   
+  createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder,orderFromToken                                                                                   
 };
 
 

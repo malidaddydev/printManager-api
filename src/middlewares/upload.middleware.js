@@ -1,32 +1,23 @@
-// src/middlewares/upload.middleware.js
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
-// Set storage engine
+// Set different upload path
+const orderuploads = path.join(__dirname, '../../public/orderuploads');
+if (!fs.existsSync(orderuploads)) {
+  fs.mkdirSync(orderuploads, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'public/uploads/');
+    cb(null, orderuploads);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
   }
 });
 
-// Optional: file filter
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|pdf/;
-  const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  if (ext) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only images or PDFs allowed'));
-  }
-};
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter
-});
+const upload = multer({ storage });
 
 module.exports = upload;

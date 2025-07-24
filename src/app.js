@@ -10,6 +10,9 @@ const customerRoutes = require('./routes/customer.routes');
 const orderRoutes = require('./routes/order.routes');
 const {authenticate} = require('./middlewares/auth.middleware');
 const uploadRoutes = require('./routes/upload.routes');
+const orderFileRoutes = require('./routes/orderFile.routes');
+const orderItemRoutes = require('./routes/orderItems.routes');
+const sizeQuantitiesRoutes = require('./routes/sizequantities.routes');
 const cors = require('cors');
 
 
@@ -38,6 +41,9 @@ app.use('/api/users', usersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/orderFiles', orderFileRoutes);
+app.use('/api/orderItems', orderItemRoutes);
+app.use('/api/sizeQuantities', sizeQuantitiesRoutes);
 app.use('/api', uploadRoutes);
 
 
