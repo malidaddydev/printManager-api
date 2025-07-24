@@ -12,7 +12,8 @@ const createOrder = async (req, res) => {
       startDate,
       dueDate,
       notes,
-      items, // Array of order items
+      items,
+      createdBy // Array of order items
     } = req.body;
 
 
@@ -51,7 +52,8 @@ if (typeof items === 'string') {
         files: {
           create: uploadedFiles.map(f => ({
             fileName: f.filename,
-            filePath: f.path
+            filePath: f.path,
+            uploadedBy:createdBy
           }))
         },
         items: {
@@ -196,8 +198,86 @@ const getSingleOrders = async(req,res)=>{
 
 
 
+
+
+
+const updateOrder = async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id); // Order ID from URL param
+    const {
+      customerId,
+      orderNumber,
+      title,
+      status ,
+      startDate,
+      dueDate,
+      notes,
+      updatedBy
+    } = req.body;
+
+    const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+        customerId: customerId ? parseInt(customerId) : undefined,
+        orderNumber,
+        title,
+        status,
+        startDate: startDate ? new Date(startDate) : undefined,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        notes,
+        updatedBy
+        
+       
+      },
+      include: {
+        files: true,
+        items: {
+          include: {
+            sizeQuantities: true,
+            product: true
+          }
+        },
+        customer: true
+      }
+    });
+
+    res.status(200).json(updatedOrder);
+  } catch (err) {
+    console.error('Error updating order:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message });
+  }
+};
+
+
+
+const deleteOrder = async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+
+    // Optional: check existence
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!existingOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Delete the order (cascades all related records)
+    await prisma.order.delete({
+      where: { id: orderId },
+    });
+
+    res.status(200).json({ message: "Order deleted successfully" });
+  } catch (err) {
+    console.error("Delete Order Error:", err);
+    res.status(500).json({ message: "Internal server error", error: err.message });
+  }
+};
+
+
 module.exports = {
-  createOrder,getAllOrders,getProductColors,getSingleOrders                                                                                   
+  createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder                                                                                   
 };
 
 

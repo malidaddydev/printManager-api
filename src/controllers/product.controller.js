@@ -5,7 +5,7 @@ const path = require('path');
 // Create Product with uploaded files and sizeQuantities
 exports.createProduct = async (req, res) => {
   try {
-    const { title, unitPrice, serviceId, category, colorOptions } = req.body;
+    const { title, unitPrice, serviceId, category, colorOptions, createdBy } = req.body;
 
     if (!title || !unitPrice || !serviceId || !category) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -28,10 +28,12 @@ exports.createProduct = async (req, res) => {
         serviceId: parseInt(serviceId),
         category,
         colorOptions: parsedColorOptions,
+        createdBy,
         files: {
           create: uploadedFiles.map(f => ({
             fileName: f.filename,
-            filePath: f.path
+            filePath: f.path,
+            uploadedBy:createdBy
           }))
         }
       
@@ -93,7 +95,7 @@ exports.getProductById = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const productId = parseInt(req.params.id);
-    const { title, unitPrice, serviceId, category, colorOptions } = req.body;
+    const { title, unitPrice, serviceId, category, colorOptions,updatedBy } = req.body;
 
     const existingProduct = await prisma.product.findUnique({
       where: { id: productId },
@@ -129,12 +131,14 @@ exports.updateProduct = async (req, res) => {
         unitPrice: parseFloat(unitPrice),
         serviceId: parseInt(serviceId),
         category,
+        updatedBy,
         colorOptions: parsedColorOptions,
         ...(uploadedFiles.length > 0 && {
           files: {
             create: uploadedFiles.map(f => ({
               fileName: f.filename,
-              filePath: f.path
+              filePath: f.path,
+              updatedBy:updatedBy
             }))
           }
         })

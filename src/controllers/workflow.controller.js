@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 exports.createWorkflow = async (req, res) => {
   try {
-    const { title} = req.body;
+    const { title,createdBy} = req.body;
 
     if (!title) {
       return res.status(400).json({ message: "Title is required" });
@@ -17,6 +17,7 @@ exports.createWorkflow = async (req, res) => {
     const newWorkflow = await prisma.workflow.create({
       data: {
         title,
+        createdBy
         
       }
     });
@@ -71,12 +72,12 @@ exports.getWorkflowById = async (req, res) => {
 // UPDATE Workflow
 exports.updateWorkflow = async (req, res) => {
   const { id } = req.params;
-  const { title } = req.body;
+  const { title,updatedBy } = req.body;
 
   try {
     const updatedWorkflow = await prisma.workflow.update({
       where: { id: parseInt(id) },
-      data: { title }
+      data: { title,updatedBy }
     });
 
     res.json(updatedWorkflow);
@@ -114,7 +115,7 @@ exports.addStagesToWorkflow = async (req, res) => {
  
 
   try {
-    const {stages } = req.body;
+    const {stages,createdBy } = req.body;
     if (!Array.isArray(stages) || stages.length === 0) {
       return res.status(400).json({ message: "At least one stage is required" });
     }
@@ -133,7 +134,8 @@ exports.addStagesToWorkflow = async (req, res) => {
           create: stages.map(stage => ({
             title: stage.title,
             color: stage.color,
-            days: stage.days
+            days: stage.days,
+            createdBy:createdBy
           }))
         }
       },

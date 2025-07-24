@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 // Create a Service
 exports.createService = async (req, res) => {
   try {
-    const { title, workflowId } = req.body;
+    const { title, workflowId, createdBy } = req.body;
 
     if (!title) {
       return res.status(400).json({ message: 'Title is required' });
@@ -13,7 +13,8 @@ exports.createService = async (req, res) => {
     const newService = await prisma.service.create({
       data: {
         title,
-        workflowId: workflowId || null
+        workflowId: workflowId || null,
+        createdBy
       }
     });
 
@@ -71,14 +72,15 @@ exports.getServiceById = async (req, res) => {
 // Update a Service
 exports.updateService = async (req, res) => {
   const { id } = req.params;
-  const { title, workflowId } = req.body;
+  const { title, workflowId,updatedBy } = req.body;
 
   try {
     const updatedService = await prisma.service.update({
       where: { id: parseInt(id) },
       data: {
         title,
-        workflowId: workflowId || null
+        workflowId: workflowId || null,
+        updatedBy
       }
     });
 

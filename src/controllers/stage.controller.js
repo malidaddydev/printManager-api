@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 // Create a Stage
 exports.createStage = async (req, res) => {
   try {
-    const { title, color, days, workflowId } = req.body;
+    const { title, color, days, workflowId,createdBy } = req.body;
 
     if (!title || !color || typeof days !== 'number') {
       return res.status(400).json({ message: "Title, color, and days are required" });
@@ -15,7 +15,8 @@ exports.createStage = async (req, res) => {
         title,
         color,
         days,
-        workflowId: workflowId || null
+        workflowId: workflowId || null,
+        createdBy
       }
     });
 
@@ -68,7 +69,7 @@ exports.getStageById = async (req, res) => {
 // Update Stage
 exports.updateStage = async (req, res) => {
   const { id } = req.params;
-  const { title, color, days, workflowId } = req.body;
+  const { title, color, days, workflowId,updatedBy } = req.body;
 
   try {
     const updatedStage = await prisma.stage.update({
@@ -77,7 +78,8 @@ exports.updateStage = async (req, res) => {
         title,
         color,
         days,
-        workflowId: workflowId || null
+        workflowId: workflowId || null,
+        updatedBy
       }
     });
 
