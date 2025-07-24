@@ -88,14 +88,6 @@ if (typeof items === 'string') {
   }
 };
 
-const getAllOrders = async(req,res)=>{
-  try {
-    const allOrders = await prisma.order.findMany()
-    res.status(201).json(allOrders)
-  } catch (error) {
-    res.status(400).json({error:error.message})
-  }
-}
 
 const getProductColors = async (req, res) => {
   const productId  = req.params.id;
@@ -126,8 +118,86 @@ const getProductColors = async (req, res) => {
 };
 
 
+
+const getAllOrders = async(req,res)=>{
+  try {
+    const orders = await prisma.order.findMany({
+      include: {
+        customer: true, // Get Customer details
+        items: {
+          include: {
+            product: {
+              include: {
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: true, // Workflow stages
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            sizeQuantities: true,
+            comments: true,
+          },
+        },
+        files: true,
+        comments: true,
+      }
+      
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+const getSingleOrders = async(req,res)=>{
+  try {
+    const orderId=req.params.id
+    const orders = await prisma.order.findUnique({
+      where:{id:parseInt(orderId)},
+      include: {
+        customer: true, // Get Customer details
+        items: {
+          include: {
+            product: {
+              include: {
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: true, // Workflow stages
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            sizeQuantities: true,
+            comments: true,
+          },
+        },
+        files: true,
+        comments: true,
+      }
+      
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+
+
 module.exports = {
-  createOrder,getAllOrders,getProductColors                                                                                   
+  createOrder,getAllOrders,getProductColors,getSingleOrders                                                                                   
 };
 
 

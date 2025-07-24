@@ -46,6 +46,9 @@ model Order {
   dueDate     DateTime     @db.DateTime(0)   // Due Date
   notes       String?      @db.Text          // Notes
   files       OrderFile[]                     // File uploads (multi-file)
+  createdBy   String?   @db.VarChar(100)
+  updatedBy   String?   @db.VarChar(100)
+
 
   items       OrderItem[]  // 1-to-many with OrderItem
   comments            OrderComment[]
@@ -60,6 +63,9 @@ model OrderItem {
   color      String?  @db.VarChar(100) // Color dropdown
   quantity   Int                              // Total quantity (sum of sizes)
   price      Float                            // Single price value or overridden total
+  createdBy   String?   @db.VarChar(100)
+  updatedBy   String?   @db.VarChar(100)
+
                 
   sizeQuantities SizeQuantities[]
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -88,6 +94,9 @@ model Product {
   colorOptions Json?    // Array of colors
   orderItems   OrderItem[] // 1-to-many with OrderItem (existing)
   service      Service?    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdBy   String?   @db.VarChar(100)
+  updatedBy   String?   @db.VarChar(100)
+
   
 }
 
@@ -98,6 +107,9 @@ model SizeQuantities{
   Size       String?  @db.VarChar(100)
   Price      Int
   Quantity   Int
+  createdBy   String?   @db.VarChar(100)
+  updatedBy   String?   @db.VarChar(100)
+
 }
 
 model Service {
@@ -106,6 +118,9 @@ model Service {
   workflow    Workflow? @relation(fields: [workflowId], references: [id]) // Optional workflow
   workflowId  Int?
   products    Product[] // 1-to-many with Product (a service can be used by multiple products)
+  createdBy   String?   @db.VarChar(100)
+  updatedBy   String?   @db.VarChar(100)
+
 }
 
 model Workflow {
@@ -113,6 +128,9 @@ model Workflow {
   title       String   // From UI (required)
   stages      Stage[]  // 1-to-many with Stage
   services    Service[] // 1-to-many with Service
+  createdBy   String?   @db.VarChar(100)
+  updatedBy   String?   @db.VarChar(100)
+
 }
 
 model Stage {
@@ -122,6 +140,8 @@ model Stage {
   days        Int       // Duration in days
   workflow    Workflow? @relation(fields: [workflowId], references: [id])
   workflowId  Int?      // Many-to-1 with Workflow (many stages belong to one workflow)
+  createdBy   String?   @db.VarChar(100)
+  updatedBy   String?   @db.VarChar(100)
 }
 
 
@@ -142,6 +162,7 @@ model OrderFile {
   approvedBy   String?   @db.VarChar(100)
   approvedAt   DateTime? @db.DateTime(0)
   uploadedBy   String?   @db.VarChar(100)
+  updatedBy   String?   @db.VarChar(100)
   uploadedAt   DateTime  @default(now()) @db.DateTime(0)
   createdAt    DateTime  @default(now()) @db.DateTime(0)
   updatedAt    DateTime  @default(now()) @db.DateTime(0)
