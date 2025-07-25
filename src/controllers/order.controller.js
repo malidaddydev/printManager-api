@@ -286,6 +286,7 @@ const getAllOrders = async(req,res)=>{
           include: {
             product: {
               include: {
+                files:true,
                 service: {
                   include: {
                     workflow: {
@@ -323,6 +324,7 @@ const getSingleOrders = async(req,res)=>{
         items: {
           include: {
             product: {
+              files:true,
               include: {
                 service: {
                   include: {
