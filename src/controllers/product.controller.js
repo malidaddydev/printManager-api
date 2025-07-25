@@ -44,6 +44,9 @@ exports.createProduct = async (req, res) => {
       }
     });
 
+    
+    
+    
     res.status(201).json(newProduct);
   } catch (error) {
     console.error("Create Product Error:", error);
@@ -60,7 +63,7 @@ exports.getAllProducts = async (req, res) => {
                 service: {
                   include: {
                     workflow: {
-                      include: {
+                        include: {
                         stages: true, // Workflow stages
                       },
                     },
@@ -122,7 +125,7 @@ exports.updateProduct = async (req, res) => {
 
     const uploadedFiles = req.files?.map(file => ({
       filename: file.filename,
-      path: `/orderuploads/${fileName}`
+      path: `/orderuploads/${file.filename}`
     })) || [];
 
     // Parse colorOptions and sizeQuantities if sent as strings
