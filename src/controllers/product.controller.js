@@ -14,7 +14,7 @@ exports.createProduct = async (req, res) => {
     // Save uploaded files
     const uploadedFiles = req.files?.map(file => ({
       filename: file.filename,
-      path: `/orderuploads/${file.fileName}`
+      path: `/orderuploads/${file.filename}`
     })) || [];
 
     // Parse colorOptions and sizeQuantities if sent as strings
