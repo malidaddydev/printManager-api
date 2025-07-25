@@ -324,8 +324,9 @@ const getSingleOrders = async(req,res)=>{
         items: {
           include: {
             product: {
-              files:true,
+              
               include: {
+                files:true,
                 service: {
                   include: {
                     workflow: {

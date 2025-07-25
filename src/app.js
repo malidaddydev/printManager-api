@@ -13,6 +13,8 @@ const uploadRoutes = require('./routes/upload.routes');
 const orderFileRoutes = require('./routes/orderFile.routes');
 const orderItemRoutes = require('./routes/orderItems.routes');
 const sizeQuantitiesRoutes = require('./routes/sizequantities.routes');
+const orderCommentRoutes = require('./routes/orderComment.routes');
+
 const cors = require('cors');
 
 
@@ -44,6 +46,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/orderFiles', orderFileRoutes);
 app.use('/api/orderItems', orderItemRoutes);
 app.use('/api/sizeQuantities', sizeQuantitiesRoutes);
+app.use('/api/comments', orderCommentRoutes);
 app.use('/api', uploadRoutes);
 
 
