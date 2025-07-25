@@ -56,10 +56,17 @@ exports.getAllProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
       include: {
-        files: true,
-        service: true
-        
-      }
+                files:true,
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: true, // Workflow stages
+                      },
+                    },
+                  },
+                },
+              }
     });
     res.json(products);
   } catch (error) {
@@ -76,10 +83,17 @@ exports.getProductById = async (req, res) => {
     const product = await prisma.product.findUnique({
       where: { id: parseInt(id) },
       include: {
-        files: true,
-        service: true,
-        
-      }
+                files:true,
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: true, // Workflow stages
+                      },
+                    },
+                  },
+                },
+              }
     });
 
     if (!product) return res.status(404).json({ message: "Product not found" });
