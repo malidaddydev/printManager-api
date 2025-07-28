@@ -150,13 +150,29 @@ const deleteSizeQuantity = async (req, res) => {
       where: { id: parseInt(id) },
     });
 
-    
-
-
     if (!existing) {
       return res.status(404).json({ message: 'SizeQuantity not found' });
     }
 
+     const existingOrderItem = await prisma.orderItem.findFirst({
+      where: { id: parseInt(orderitemId) }
+      
+    });
+
+    const existingOrderItemQuantity=(existingOrderItem.quantity)-existing.Quantity
+    const existingOrderItemPrice=(existingOrderItem.price)-(existing.Price*existing.Quantity)
+
+
+
+    const updatedOrderItem = await prisma.orderItem.update({
+      where: { id: parseInt(orderitemId) },
+      data: {
+        
+        quantity:existingOrderItemQuantity,
+        price:existingOrderItemPrice,
+        
+      },
+    });
     await prisma.sizeQuantities.delete({
       where: { id: parseInt(id) },
     });
