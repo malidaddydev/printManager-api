@@ -64,6 +64,7 @@ model OrderItem {
   color      String?  @db.VarChar(100) // Color dropdown
   quantity   Int                              // Total quantity (sum of sizes)
   price      Float                            // Single price value or overridden total
+  currentStage  String?   @db.VarChar(100)   
   createdBy   String?   @db.VarChar(100)
   updatedBy   String?   @db.VarChar(100)
 
