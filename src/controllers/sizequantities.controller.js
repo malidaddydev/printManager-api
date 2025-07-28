@@ -155,7 +155,7 @@ const deleteSizeQuantity = async (req, res) => {
     }
 
      const existingOrderItem = await prisma.orderItem.findFirst({
-      where: { id: parseInt(orderitemId) }
+      where: { id: parseInt(existing.orderitemId) }
       
     });
 
