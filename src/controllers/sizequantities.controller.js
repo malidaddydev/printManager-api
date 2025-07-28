@@ -116,7 +116,7 @@ const updateSizeQuantity = async (req, res) => {
 
     existingSizeandQuantity.map((element)=>{
       existingQuantity+=element.Quantity
-      existingPrice+=element.Quantity
+      existingPrice+=element.Price
     })
 
     const updatedOrderItemQuantity=existingQuantity
