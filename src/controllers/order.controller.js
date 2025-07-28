@@ -180,10 +180,45 @@ const createOrder = async (req, res) => {
     } else { 
       parsedItems = items; 
     } 
- 
+    
+    const enrichedItems = await Promise.all(
+  parsedItems.map(async (item) => {
+    const product = await prisma.product.findUnique({
+      where: { id: parseInt(item.productId) },
+      include: {
+        service: {
+          include: {
+            workflow: {
+              include: {
+                stages: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const firstStage = product?.service?.workflow?.stages?.[0]?.title || 'Pending';
+
+    return {
+      productId: parseInt(item.productId),
+      color: item.color,
+      quantity: item.quantity,
+      price: item.price,
+      currentStage: firstStage,
+      sizeQuantities: {
+        create: item.sizeQuantities?.map(sq => ({
+          Size: sq.Size,
+          Price: sq.Price,
+          Quantity: sq.Quantity
+        })) || [],
+      }
+    };
+  })
+);
     // Generate a unique token for tracking
     const trackingToken = crypto.randomBytes(8).toString('hex').toUpperCase();
- 
+    
     const newOrder = await prisma.order.create({ 
       data: { 
         customerId: parseInt(customerId), 
@@ -201,20 +236,7 @@ const createOrder = async (req, res) => {
           })) 
         }, 
         items: { 
-          create: parsedItems?.map(item => ({ 
-            productId: parseInt(item.productId), 
-            color: item.color, 
-            quantity: item.quantity, 
-            price: item.price,
-            currentStatus:item.product.service.workflow.stages[0].title, 
-            sizeQuantities: { 
-              create: item.sizeQuantities?.map(sq => ({ 
-                Size: sq.Size, 
-                Price: sq.Price, 
-                Quantity: sq.Quantity 
-              })) || [], 
-            }, 
-          })) || [], 
+          create: enrichedItems, 
         }, 
         token: trackingToken,
         createdBy
@@ -227,6 +249,8 @@ const createOrder = async (req, res) => {
         customer: true, 
       }, 
     }); 
+
+    
  
     // Send confirmation email to customer
     const emailResult = await sendOrderConfirmationEmail(newOrder);
