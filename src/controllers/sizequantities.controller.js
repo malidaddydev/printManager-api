@@ -83,6 +83,9 @@ const updateSizeQuantity = async (req, res) => {
       return res.status(404).json({ message: 'SizeQuantity not found' });
     }
 
+    
+    
+    
     const updated = await prisma.sizeQuantities.update({
       where: { id: parseInt(id) },
       data: {
@@ -98,8 +101,31 @@ const updateSizeQuantity = async (req, res) => {
       
     });
 
-    const existingOrderItemQuantity=(existingOrderItem.quantity)+Quantity
-    const existingOrderItemPrice=(existingOrderItem.price)+(Price*Quantity)
+
+    const existingSizeandQuantity = await prisma.sizeQuantities.findMany({
+      where: { id: parseInt(updated.orderitemId) },
+      include: {
+        orderitemId: true,
+        Size: true,
+        Price: true,
+        Quantity: true,
+        createdBy: true,
+        updatedBy: true,
+      
+       
+      },
+    });
+
+    let existingQuantity=0;
+    let existingPrice=0;
+
+    existingSizeandQuantity.map((element)=>{
+      existingQuantity+=element.Quantity
+      existingPrice+=element.Quantity
+    })
+
+    const updatedOrderItemQuantity=existingQuantity
+    const updatedOrderItemPrice=existingPrice
 
 
 
@@ -107,8 +133,8 @@ const updateSizeQuantity = async (req, res) => {
       where: { id: parseInt(updated.orderitemId) },
       data: {
         
-        quantity:existingOrderItemQuantity,
-        price:existingOrderItemPrice,
+        quantity:updatedOrderItemQuantity,
+        price:updatedOrderItemPrice,
         updatedBy,
       },
     });
