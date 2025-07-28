@@ -35,7 +35,7 @@ const createSizeQuantity = async (req, res) => {
         
         quantity:existingOrderItemQuantity,
         price:existingOrderItemPrice,
-        updatedBy,
+        
       },
     });
 
