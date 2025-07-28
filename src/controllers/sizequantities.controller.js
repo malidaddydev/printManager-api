@@ -165,7 +165,7 @@ const deleteSizeQuantity = async (req, res) => {
 
 
     const updatedOrderItem = await prisma.orderItem.update({
-      where: { id: parseInt(orderitemId) },
+      where: { id: parseInt(existing.orderitemId) },
       data: {
         
         quantity:existingOrderItemQuantity,
