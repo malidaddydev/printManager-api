@@ -5,7 +5,7 @@ const path = require('path');
 // Create Product with uploaded files and sizeQuantities
 exports.createProduct = async (req, res) => {
   try {
-    const { title, unitPrice, serviceId, category, colorOptions, createdBy } = req.body;
+    const { title, unitPrice, serviceId, category, colorOptions, sizeOptions,createdBy } = req.body;
 
     if (!title || !unitPrice || !serviceId || !category) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -19,6 +19,7 @@ exports.createProduct = async (req, res) => {
 
     // Parse colorOptions and sizeQuantities if sent as strings
     const parsedColorOptions = colorOptions ? JSON.parse(colorOptions) : [];
+    const parsedSizeOptions = sizeOptions ? JSON.parse(sizeOptions) : [];
     
 
     const newProduct = await prisma.product.create({
@@ -28,6 +29,7 @@ exports.createProduct = async (req, res) => {
         serviceId: parseInt(serviceId),
         category,
         colorOptions: parsedColorOptions,
+        sizeOptions:parsedSizeOptions,
         createdBy,
         files: {
           create: uploadedFiles.map(f => ({
