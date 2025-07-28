@@ -105,12 +105,7 @@ const updateSizeQuantity = async (req, res) => {
     const existingSizeandQuantity = await prisma.sizeQuantities.findMany({
       where: { id: parseInt(updated.orderitemId) },
       include: {
-        orderitemId: true,
-        Size: true,
-        Price: true,
-        Quantity: true,
-        createdBy: true,
-        updatedBy: true,
+        orderitem: true
       
        
       },
