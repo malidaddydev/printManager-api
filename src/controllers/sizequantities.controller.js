@@ -19,7 +19,7 @@ const createSizeQuantity = async (req, res) => {
       },
     });
 
-    const existingOrderItem = await prisma.orderItem.update({
+    const existingOrderItem = await prisma.orderItem.findFirst({
       where: { id: parseInt(orderitemId) }
       
     });
@@ -93,7 +93,7 @@ const updateSizeQuantity = async (req, res) => {
       },
     });
 
-     const existingOrderItem = await prisma.orderItem.update({
+     const existingOrderItem = await prisma.orderItem.findFirst({
       where: { id: parseInt(updated.orderitemId) }
       
     });
