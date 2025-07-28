@@ -206,7 +206,7 @@ const createOrder = async (req, res) => {
             color: item.color, 
             quantity: item.quantity, 
             price: item.price,
-            currentStatus:item.product.service.stages[0], 
+            currentStatus:item.product.service.workflow.stages[0].title, 
             sizeQuantities: { 
               create: item.sizeQuantities?.map(sq => ({ 
                 Size: sq.Size, 
