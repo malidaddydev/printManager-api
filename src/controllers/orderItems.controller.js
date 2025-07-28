@@ -121,11 +121,13 @@ const getSingleOrderItem = async (req, res) => {
 
     const orderItem = await prisma.orderItem.findUnique({
       where: { id: parseInt(id) },
+
       include: {
         sizeQuantities: true,
         product: true,
         order: true,
         comments: true,
+
       },
     });
 
@@ -171,7 +173,43 @@ const deleteOrderItem = async (req, res) => {
   }
 };
 
+const getStagesByOrderItemId = async (req, res) => {
+  try {
+    const { orderItemId } = req.params;
+
+    const orderItem = await prisma.orderItem.findUnique({
+      where: { id: parseInt(orderItemId) },
+      include: {
+        product: {
+          include: {
+            service: {
+              include: {
+                workflow: {
+                  include: {
+                    stages: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!orderItem) {
+      return res.status(404).json({ message: 'Order item not found' });
+    }
+
+    const stages = orderItem.product?.service?.workflow?.stages || [];
+
+    res.status(200).json({ stages });
+  } catch (error) {
+    console.error('Get Stages Error:', error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+};
+
 
 module.exports = {
-     createOrderItem,getSingleOrderItem,updateOrderItem,deleteOrderItem                                                                               
+     createOrderItem,getSingleOrderItem,updateOrderItem,deleteOrderItem,getStagesByOrderItemId                                                                               
 };
