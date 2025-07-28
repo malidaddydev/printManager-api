@@ -150,6 +150,9 @@ const deleteSizeQuantity = async (req, res) => {
       where: { id: parseInt(id) },
     });
 
+    
+
+
     if (!existing) {
       return res.status(404).json({ message: 'SizeQuantity not found' });
     }

@@ -274,6 +274,33 @@ const getProductColors = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+const getProductSizes = async (req, res) => {
+  const productId  = req.params.id;
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: parseInt(productId) },
+      select: {
+        id: true,
+        title: true,
+        sizeOptions: true,
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json({
+      productId: product.id,
+      title: product.title,
+      sizess: product.colorOptions || [],
+    });
+  } catch (err) {
+    console.error('Error fetching product colors:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 
 
