@@ -125,7 +125,7 @@ const updateSizeQuantity = async (req, res) => {
     })
 
     const updatedOrderItemQuantity=existingQuantity
-    const updatedOrderItemPrice=existingPrice
+    const updatedOrderItemPrice=existingPrice*updatedOrderItemQuantity
 
 
 
