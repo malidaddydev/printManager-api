@@ -504,7 +504,7 @@ const orderFromToken=async (req,res) => {
 }
 
 module.exports = {
-  createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder,orderFromToken                                                                                   
+  createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder,orderFromToken,getProductSizes                                                                                   
 };
 
 
