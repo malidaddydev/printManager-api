@@ -19,6 +19,26 @@ const createSizeQuantity = async (req, res) => {
       },
     });
 
+    const existingOrderItem = await prisma.orderItem.update({
+      where: { id: parseInt(orderitemId) }
+      
+    });
+
+    const existingOrderItemQuantity=(existingOrderItem.quantity)+Quantity
+    const existingOrderItemPrice=(existingOrderItem.price)+(Price*Quantity)
+
+
+
+    const updatedOrderItem = await prisma.orderItem.update({
+      where: { id: parseInt(orderitemId) },
+      data: {
+        
+        quantity:existingOrderItemQuantity,
+        price:existingOrderItemPrice,
+        updatedBy,
+      },
+    });
+
     res.status(201).json(sizeQuantity);
   } catch (error) {
     console.error('Create SizeQuantity Error:', error);
@@ -69,6 +89,26 @@ const updateSizeQuantity = async (req, res) => {
         Size,
         Price,
         Quantity,
+        updatedBy,
+      },
+    });
+
+     const existingOrderItem = await prisma.orderItem.update({
+      where: { id: parseInt(updated.orderitemId) }
+      
+    });
+
+    const existingOrderItemQuantity=(existingOrderItem.quantity)+Quantity
+    const existingOrderItemPrice=(existingOrderItem.price)+(Price*Quantity)
+
+
+
+    const updatedOrderItem = await prisma.orderItem.update({
+      where: { id: parseInt(updated.orderitemId) },
+      data: {
+        
+        quantity:existingOrderItemQuantity,
+        price:existingOrderItemPrice,
         updatedBy,
       },
     });
