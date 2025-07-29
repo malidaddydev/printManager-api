@@ -25,8 +25,8 @@ const createOrderFile = async (req, res) => {
 
      const addOrderIntoActivityLog=await prisma.activityLog.create({
   data: {
-    orderId:orderId,
-    productId:productId,
+    orderId:parseInt(orderId),
+    productId:parseInt(productId),
     
     action: `File Uploaded By"`,
     performedBy: uploadedBy
