@@ -23,6 +23,16 @@ const createOrderFile = async (req, res) => {
       },
     });
 
+     const addOrderIntoActivityLog=await prisma.activityLog.create({
+  data: {
+    orderId:orderId,
+    productId:productId,
+    
+    action: `File Uploaded By"`,
+    performedBy: createdBy
+  }
+});
+
     res.status(201).json(orderFile);
   } catch (error) {
     console.error('Create OrderFile Error:', error);
@@ -93,6 +103,16 @@ const updateOrderFile = async (req, res) => {
         ...fileData,
       },
     });
+
+    const addOrderIntoActivityLog=await prisma.activityLog.create({
+  data: {
+    orderId:orderId,
+    productId:productId,
+    
+    action: `File Uploaded By`,
+    performedBy: updatedBy
+  }
+});
 
     res.status(200).json(updated);
   } catch (error) {

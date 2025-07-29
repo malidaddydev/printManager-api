@@ -97,9 +97,10 @@ model Product {
   colorOptions Json?    // Array of colors
   sizeOptions  Json?
   orderItems   OrderItem[] // 1-to-many with OrderItem (existing)
+  activity      ActivityLog[]
   service      Service?    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  createdBy   String?   @db.VarChar(100)
-  updatedBy   String?   @db.VarChar(100)
+  createdBy    String?   @db.VarChar(100)
+  updatedBy    String?   @db.VarChar(100)
 
   
 }
@@ -206,6 +207,9 @@ model ActivityLog {
   orderId      Int?
   orderItem    OrderItem?    @relation(fields: [orderItemId], references: [id])
   orderItemId  Int?
+
+  product      Product?    @relation(fields: [productId], references: [id])
+  productId    Int?
   action       String
   performedBy  String
   createdAt    DateTime @default(now())

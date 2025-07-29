@@ -39,6 +39,15 @@ const createOrderItem = async (req, res) => {
       },
     });
 
+//     const addOrderIntoActivityLog=await prisma.activityLog.create({
+//   data: {
+//     orderItemId:orderId,
+    
+//     action: `OrderFile Uploaded By"`,
+//     performedBy: createdBy
+//   }
+// });
+
     res.status(201).json(orderItem);
   } catch (error) {
     console.error('Create OrderItem Error:', error);

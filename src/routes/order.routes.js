@@ -16,7 +16,7 @@ router.get('/productSizes/:id', getProductSizes);
 router.get('/:id', getSingleOrders);
 router.put('/:id', updateOrder);
 
-router.delete('/:id',authenticate, deleteOrder);
+router.delete('/:id', deleteOrder);
 // router.post('/:orderId/comments', createOrderComment);
 
 module.exports = router;
