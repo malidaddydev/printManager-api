@@ -479,7 +479,7 @@ const updateOrder = async (req, res) => {
 
   const addOrderIntoActivityLog=await prisma.activityLog.create({
   data: {
-    orderId:newOrder.id,
+    orderId:orderId,
     
     action: `Order Updated By"`,
     performedBy: updatedBy
