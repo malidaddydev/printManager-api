@@ -39,6 +39,15 @@ const createSizeQuantity = async (req, res) => {
       },
     });
 
+    const addOrderIntoActivityLog=await prisma.activityLog.create({
+  data: {
+    orderItemId:orderitemId,
+    
+    action: "Size and Quantity Created By",
+    performedBy: createdBy
+  }
+});
+
     res.status(201).json(sizeQuantity);
   } catch (error) {
     console.error('Create SizeQuantity Error:', error);
@@ -133,6 +142,16 @@ const updateSizeQuantity = async (req, res) => {
         updatedBy,
       },
     });
+
+    const addOrderIntoActivityLog=await prisma.activityLog.create({
+  data: {
+    orderItemId:updated.orderitemId,
+    
+    action: "Size and Quantity Updated By",
+    performedBy: updatedBy
+  }
+});
+
 
     res.status(200).json(updated);
   } catch (error) {
