@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 const createOrderFile = async (req, res) => {
   try {
-    const { productId, orderId, uploadedBy } = req.body;
+    const { productId, orderId, uploadedBy, orderItemId } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: 'File is required' });
@@ -27,6 +27,7 @@ const createOrderFile = async (req, res) => {
   data: {
     orderId:parseInt(orderId),
     productId:parseInt(productId),
+    orderItemId:parseInt(orderItemId),
     
     action: `File Uploaded By"`,
     performedBy: uploadedBy
@@ -108,6 +109,7 @@ const updateOrderFile = async (req, res) => {
   data: {
     orderId:orderId,
     productId:productId,
+    orderItemId:parseInt(orderItemId),
     
     action: `File Uploaded By`,
     performedBy: updatedBy
