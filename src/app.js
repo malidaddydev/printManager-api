@@ -42,7 +42,7 @@ app.use('/api/stages', stageRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
-app.use('/api/orders',authenticate, orderRoutes);
+app.use('/api/orders',orderRoutes);
 app.use('/api/orderFiles', orderFileRoutes);
 app.use('/api/orderItems', orderItemRoutes);
 app.use('/api/sizeQuantities', sizeQuantitiesRoutes);
