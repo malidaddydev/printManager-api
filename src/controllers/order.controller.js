@@ -476,6 +476,16 @@ const updateOrder = async (req, res) => {
       }
     });
 
+
+  const addOrderIntoActivityLog=await prisma.activityLog.create({
+  data: {
+    orderId:newOrder.id,
+    
+    action: `Order Updated By"`,
+    performedBy: updatedBy
+  }
+});
+
     res.status(200).json(updatedOrder);
   } catch (err) {
     console.error('Error updating order:', err);
