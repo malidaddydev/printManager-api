@@ -29,7 +29,7 @@ const createOrderFile = async (req, res) => {
     productId:productId,
     
     action: `File Uploaded By"`,
-    performedBy: createdBy
+    performedBy: uploadedBy
   }
 });
 
