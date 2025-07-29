@@ -498,20 +498,28 @@ const updateOrder = async (req, res) => {
 const deleteOrder = async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
+    const performedBy = req.user?.email || req.user?.username || 'Unknown';
 
-    // Optional: check existence
     const existingOrder = await prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId }
     });
 
     if (!existingOrder) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Delete the order (cascades all related records)
     await prisma.order.delete({
-      where: { id: orderId },
+      where: { id: orderId }
     });
+
+    await prisma.activityLog.create({
+  data: {
+    orderId: orderId,
+    action: `Order Deleted by ${req.user.username || req.user.email}`,
+    performedBy: req.user.username,
+  }
+});
+
 
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (err) {
