@@ -6,7 +6,13 @@ require('dotenv').config();
 const authenticate = async (req, res, next) => {
   try {
     // 1. Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+
+     const authHeader = req.header('Authorization');
+    console.log('Auth header:', authHeader);
+    
+    const token = authHeader?.replace('Bearer ', '');
+    console.log('Extracted token:', token);
+    
 
     if (!token) {
       return res.status(401).json({ error: 'No token, authorization denied' });
