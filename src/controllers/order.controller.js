@@ -198,6 +198,9 @@ const createOrder = async (req, res) => {
       }
     });
 
+    
+
+
     const firstStage = product?.service?.workflow?.stages?.[0]?.title || 'Pending';
 
     return {
@@ -250,6 +253,27 @@ const createOrder = async (req, res) => {
       }, 
     }); 
 
+    
+    
+    let addOrderItemIntoActivityLog=await Promise.all(newOrder.items.map(async(item)=>{
+      const activity=await prisma.activityLog.create({
+  data: {
+    
+    orderItemId: item.id,
+    action: `OrderItem Created By"`,
+    performedBy: createdBy
+  }
+});
+    }))
+   
+  const addOrderIntoActivityLog=await prisma.activityLog.create({
+  data: {
+    orderId:newOrder.id,
+    
+    action: `Order Created By"`,
+    performedBy: createdBy
+  }
+});
     
  
     // Send confirmation email to customer

@@ -53,6 +53,7 @@ model Order {
 
   items       OrderItem[]  // 1-to-many with OrderItem
   comments            OrderComment[]
+  activity            ActivityLog[] 
 
   @@index([customerId])
 }
@@ -64,14 +65,14 @@ model OrderItem {
   color      String?  @db.VarChar(100) // Color dropdown
   quantity   Int                              // Total quantity (sum of sizes)
   price      Float                            // Single price value or overridden total
-  currentStage  String?   @db.VarChar(100)   
-  createdBy   String?   @db.VarChar(100)
-  updatedBy   String?   @db.VarChar(100)
+  currentStage        String?   @db.VarChar(100)   
+  createdBy           String?   @db.VarChar(100)
+  updatedBy           String?   @db.VarChar(100)
 
-                
-  sizeQuantities SizeQuantities[]
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  activity            ActivityLog[]              
+  sizeQuantities      SizeQuantities[]
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product             Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   comments            OrderComment[]
   
 
@@ -199,3 +200,13 @@ model OrderComment {
   @@index([parentCommentId])
 }
 
+model ActivityLog {
+  id           Int      @id @default(autoincrement())
+  order        Order?      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      Int?
+  orderItem    OrderItem?    @relation(fields: [orderItemId], references: [id])
+  orderItemId  Int?
+  action       String
+  performedBy  String
+  createdAt    DateTime @default(now())
+}
