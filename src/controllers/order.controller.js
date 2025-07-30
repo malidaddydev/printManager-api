@@ -498,7 +498,7 @@ const updateOrder = async (req, res) => {
 const deleteOrder = async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
-    const performedBy = req.user?.email || req.user?.username || 'Unknown';
+    // const performedBy = req.user?.email || req.user?.username || 'Unknown';
 
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId }
@@ -512,13 +512,13 @@ const deleteOrder = async (req, res) => {
       where: { id: orderId }
     });
 
-    await prisma.activityLog.create({
-  data: {
-    orderId: orderId,
-    action: `Order Deleted by ${req.user.username || req.user.email}`,
-    performedBy: req.user.username,
-  }
-});
+//     await prisma.activityLog.create({
+//   data: {
+//     orderId: orderId,
+//     action: `Order Deleted by ${req.user.username || req.user.email}`,
+//     performedBy: req.user.username,
+//   }
+// });
 
 
     res.status(200).json({ message: "Order deleted successfully" });
