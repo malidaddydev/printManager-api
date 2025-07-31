@@ -508,10 +508,6 @@ const deleteOrder = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    await prisma.order.delete({
-      where: { id: orderId }
-    });
-
     const deletelog=await prisma.activityLog.create({
   data: {
     orderId: orderId,
@@ -519,6 +515,12 @@ const deleteOrder = async (req, res) => {
     performedBy: req.user.username,
   }
 });
+    
+
+    await prisma.order.delete({
+      where: { id: orderId }
+    });
+
 
 
     res.status(200).json({ message: "Order deleted successfully" });
