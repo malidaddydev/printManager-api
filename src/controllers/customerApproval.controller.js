@@ -53,7 +53,7 @@ const sendFileApprovalEmail = async (req, res) => {
 const fileId=req.params.id
   try {
     const file = await prisma.orderFile.findUnique({
-      where: { id: fileId },
+      where: { id: parseInt(fileId) },
       include: {
         order: {
           include: {
