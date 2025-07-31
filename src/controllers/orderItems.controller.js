@@ -64,6 +64,7 @@ const updateOrderItem = async (req, res) => {
     const {
       orderId,
       productId,
+      currentStage,
       color,
       quantity,
       price,
@@ -87,6 +88,7 @@ const updateOrderItem = async (req, res) => {
         orderId,
         productId,
         color,
+        currentStage,
         quantity,
         price,
         updatedBy,
