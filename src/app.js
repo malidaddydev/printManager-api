@@ -15,6 +15,7 @@ const orderItemRoutes = require('./routes/orderItems.routes');
 const sizeQuantitiesRoutes = require('./routes/sizequantities.routes');
 const activityLogRoutes = require('./routes/activitylog.routes');
 const orderCommentRoutes = require('./routes/orderComment.routes');
+const customerApprovalRoutes = require('./routes/customerApproval.routes');
 
 const cors = require('cors');
 
@@ -50,6 +51,7 @@ app.use('/api/sizeQuantities', sizeQuantitiesRoutes);
 app.use('/api/comments', orderCommentRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/activitylogs', activityLogRoutes);
+app.use('/api/customerApprovals',customerApprovalRoutes );
 
 
 

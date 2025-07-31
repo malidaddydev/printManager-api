@@ -27,6 +27,7 @@ const generateFileApprovalEmail = (file, customer, order) => {
           <li><strong>Uploaded At:</strong> ${new Date(file.uploadedAt).toLocaleString()}</li>
         </ul>
         <p>You can view and approve it by clicking the link below:</p>
+        <p>You can use this token to track and approve file ${order.token}</p>
         <a href="${approvalUrl}" style="display:inline-block;padding:10px 20px;background:#007cba;color:#fff;text-decoration:none;border-radius:5px;">Review & Approve</a>
         <p>If you have any questions, feel free to contact us.</p>
         <p>Best regards,<br>Your Company Team</p>
@@ -47,7 +48,9 @@ Your Company Team`
   };
 };
 
-const sendFileApprovalEmail = async (fileId) => {
+const sendFileApprovalEmail = async (req, res) => {
+
+const fileId=req.params.id
   try {
     const file = await prisma.orderFile.findUnique({
       where: { id: fileId },
@@ -77,6 +80,11 @@ const sendFileApprovalEmail = async (fileId) => {
 
     const result = await transporter.sendMail(mailOptions);
     console.log('Approval request email sent:', result.messageId);
+    if (result.success) {
+    res.status(200).json({ message: 'Approval email sent' });
+  } else {
+    res.status(500).json({ message: result.error });
+  }
     return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('Error sending approval request email:', error);
