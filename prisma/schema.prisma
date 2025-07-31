@@ -163,7 +163,7 @@ model OrderFile {
 
   fileName     String    @db.VarChar(255)
   filePath     String    @db.VarChar(500)
-  isApproved   Boolean   @default(false)
+  status       String @default("Pending") @db.VarChar(255)
   approvedBy   String?   @db.VarChar(100)
   approvedAt   DateTime? @db.DateTime(0)
   uploadedBy   String?   @db.VarChar(100)
