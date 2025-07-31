@@ -6,7 +6,7 @@ const {
 } = require('../controllers/customerApproval.controller.js');
 
 // Create with file upload
-router.post('/',sendFileApprovalEmail);
+router.post('/:id',sendFileApprovalEmail);
 
 // Get all files (filter by orderId or productId)
 // router.get('/', getOrderFiles);
