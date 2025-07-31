@@ -49,8 +49,8 @@ Your Company Team`
 };
 
 const sendFileApprovalEmail = async (req, res) => {
+  const fileId = req.params.id;
 
-const fileId=req.params.id
   try {
     const file = await prisma.orderFile.findUnique({
       where: { id: parseInt(fileId) },
@@ -64,7 +64,7 @@ const fileId=req.params.id
     });
 
     if (!file || !file.order || !file.order.customer) {
-      throw new Error("File, order, or customer not found");
+      return res.status(404).json({ message: "File, order, or customer not found" });
     }
 
     const transporter = createEmailTransporter();
@@ -80,16 +80,13 @@ const fileId=req.params.id
 
     const result = await transporter.sendMail(mailOptions);
     console.log('Approval request email sent:', result.messageId);
-    if (result.success) {
-    res.status(200).json({ message: 'Approval email sent' });
-  } else {
-    res.status(500).json({ message: result.error });
-  }
-    return { success: true, messageId: result.messageId };
+
+    return res.status(200).json({ message: 'Approval email sent', messageId: result.messageId });
   } catch (error) {
     console.error('Error sending approval request email:', error);
-    return { success: false, error: error.message };
+    return res.status(500).json({ message: error.message || 'Something went wrong' });
   }
 };
+
 
 module.exports = { sendFileApprovalEmail };
