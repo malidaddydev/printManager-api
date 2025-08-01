@@ -40,7 +40,7 @@ model Order {
   customerId  Int
   customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-  orderNumber String       @db.VarChar(100)  // "ORD 1234"
+  orderNumber String?       @db.VarChar(100)  // "ORD 1234"
   title       String       @db.VarChar(255)  // Title field in form
   status      String       @default("Draft") @db.VarChar(50) // Draft / Processing / Production / Ready
   startDate   DateTime?    @db.DateTime(0)   // Start Date
