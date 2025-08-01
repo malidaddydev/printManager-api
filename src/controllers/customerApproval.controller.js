@@ -124,16 +124,7 @@ const customerStatusUpdate = async (req, res) => {
       },
     });
 
-    const addOrderIntoActivityLog=await prisma.activityLog.create({
-  data: {
-    orderId:orderId,
-    productId:productId,
-    orderItemId:parseInt(orderItemId),
-    
-    action: `File Uploaded By`,
-    performedBy: updatedBy
-  }
-});
+   
 
     res.status(200).json(updated);
   } catch (error) {
