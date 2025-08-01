@@ -27,11 +27,11 @@ const createEmailTransporter = () => {
 };
 
 // Email template for order confirmation
-const generateOrderConfirmationEmail = (order) => {
+const generateOrderConfirmationEmail = (order,orderNumber) => {
   const trackingUrl = `https://elipsestudio.com/CustomerChecker/customercheckpage.html`;
   
   return {
-    subject: `Order Confirmation - ${order.orderNumber}`,
+    subject: `Order Confirmation - ${orderNumber}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -60,7 +60,7 @@ const generateOrderConfirmationEmail = (order) => {
             
             <div class="tracking-box">
               <h3>Track Your Order</h3>
-              <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+              <p><strong>Order Number:</strong> ${orderNumber}</p>
               <p><strong>Tracking Token:</strong> ${order.token}</p>
               <p>You can track your order status using the link below:</p>
               <a href="${trackingUrl}" class="tracking-link">Track Order</a>
@@ -102,14 +102,14 @@ const generateOrderConfirmationEmail = (order) => {
       </html>
     `,
     text: `
-      Order Confirmation - ${order.orderNumber}
+      Order Confirmation - ${orderNumber}
       
       Dear ${order.customer.name},
       
       Thank you for your order! We've received your order and it's being processed.
       
       Order Details:
-      - Order Number: ${order.orderNumber}
+      - Order Number: ${orderNumber}
       - Tracking Token: ${order.token}
       - Title: ${order.title}
       - Status: ${order.status}
@@ -126,10 +126,10 @@ const generateOrderConfirmationEmail = (order) => {
 };
 
 // Send order confirmation email
-const sendOrderConfirmationEmail = async (order) => {
+const sendOrderConfirmationEmail = async (order,orderNumber) => {
   try {
     const transporter = createEmailTransporter();
-    const emailContent = generateOrderConfirmationEmail(order);
+    const emailContent = generateOrderConfirmationEmail(order,orderNumber);
     
     const mailOptions = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
@@ -285,7 +285,7 @@ await prisma.order.update({
     
  
     // Send confirmation email to customer
-    const emailResult = await sendOrderConfirmationEmail(newOrder);
+    const emailResult = await sendOrderConfirmationEmail(newOrder,newOrderNumber);
     
     if (!emailResult.success) {
       console.warn('Failed to send order confirmation email:', emailResult.error);
