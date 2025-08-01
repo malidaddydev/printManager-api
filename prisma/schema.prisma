@@ -75,6 +75,7 @@ model OrderItem {
   order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product             Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   comments            OrderComment[]
+  files               OrderFile[]
   
 
   @@index([orderId])
@@ -161,6 +162,7 @@ model OrderFile {
   id           Int       @id @default(autoincrement())
   productId    Int?
   orderId      Int?
+  orderItemId      Int?
 
   fileName     String    @db.VarChar(255)
   filePath     String    @db.VarChar(500)
@@ -175,6 +177,7 @@ model OrderFile {
 
  
   order        Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem    OrderItem?    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   product      Product?   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
