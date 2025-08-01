@@ -518,9 +518,9 @@ const deleteOrder = async (req, res) => {
 
     const deletelog=await prisma.activityLog.create({
   data: {
-    orderId: orderId,
+    // orderId: orderId,
     action: `Order Deleted by `,
-    performedBy: req.user.username,
+    performedBy: performedBy
   }
 });
     
