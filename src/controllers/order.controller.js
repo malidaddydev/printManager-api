@@ -253,6 +253,14 @@ const createOrder = async (req, res) => {
       }, 
     }); 
 
+    const newOrderNumber = `ORD-${String(newOrder.id).padStart(4, '0')}`;
+
+await prisma.order.update({
+  where: { id: newOrder.id },
+  data: { orderNumber:newOrderNumber }
+});
+
+
     
     
     let addOrderItemIntoActivityLog=await Promise.all(newOrder.items.map(async(item)=>{
