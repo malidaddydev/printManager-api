@@ -17,6 +17,7 @@ const createOrderFile = async (req, res) => {
       data: {
         productId: productId ? parseInt(productId) : null,
         orderId: orderId ? parseInt(orderId) : null,
+        orderItemId: orderItemId ? parseInt(orderItemId) : null,
         fileName,
         filePath,
         uploadedBy,
@@ -45,11 +46,12 @@ const createOrderFile = async (req, res) => {
 
 const getOrderFiles = async (req, res) => {
   try {
-    const { orderId, productId } = req.query;
+    const { orderId, productId,orderItemId } = req.query;
 
     const files = await prisma.orderFile.findMany({
       where: {
         ...(orderId && { orderId: parseInt(orderId) }),
+        ...(orderItemId && { orderId: parseInt(orderItemId) }),
         ...(productId && { productId: parseInt(productId) }),
       },
       include:{
@@ -71,6 +73,7 @@ const updateOrderFile = async (req, res) => {
     const { id } = req.params;
     const {
       productId,
+      orderItemId,
       orderId,
       isApproved,
       approvedBy,
@@ -97,6 +100,7 @@ const updateOrderFile = async (req, res) => {
     const updated = await prisma.orderFile.update({
       where: { id: parseInt(id) },
       data: {
+        orderItemId: orderItemId ? parseInt(orderItemId) : undefined,
         productId: productId ? parseInt(productId) : undefined,
         orderId: orderId ? parseInt(orderId) : undefined,
         isApproved: isApproved === 'true' || isApproved === true,
