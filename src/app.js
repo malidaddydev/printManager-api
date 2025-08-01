@@ -52,6 +52,7 @@ app.use('/api/comments', orderCommentRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/activitylogs', activityLogRoutes);
 app.use('/api/customerApprovals',customerApprovalRoutes );
+// app.use('/api/customerApprovals',customerApprovalRoutes );
 
 
 

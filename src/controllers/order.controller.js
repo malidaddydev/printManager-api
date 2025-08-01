@@ -80,12 +80,12 @@ const generateOrderConfirmationEmail = (order,orderNumber) => {
               <h3>Order Items</h3>
               ${order.items.map(item => `
                 <div style="margin-bottom: 10px; padding: 10px; border-left: 3px solid #007cba;">
-                  <p><strong>${item.product ? item.product.name : 'Product'}</strong></p>
+                  <p><strong>${item.product ? item.product.title : 'Product'}</strong></p>
                   <p>Color: ${item.color}</p>
                   <p>Quantity: ${item.quantity}</p>
                   <p>Price: $${item.price}</p>
                 </div>
-              `).join('')}
+              `).join('')}  
             </div>
             ` : ''}
             

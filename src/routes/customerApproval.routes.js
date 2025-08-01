@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload.middleware.js');
 const {
-  sendFileApprovalEmail
+  sendFileApprovalEmail,
+  customerStatusUpdate
 } = require('../controllers/customerApproval.controller.js');
 
 // Create with file upload
+router.put('/:id/customerStatusUpdate',customerStatusUpdate);
 router.post('/:id',sendFileApprovalEmail);
 
 // Get all files (filter by orderId or productId)

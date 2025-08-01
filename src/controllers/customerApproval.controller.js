@@ -89,4 +89,66 @@ const sendFileApprovalEmail = async (req, res) => {
 };
 
 
-module.exports = { sendFileApprovalEmail };
+
+
+const customerStatusUpdate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      productId,
+      orderId,
+      status
+    } = req.body;
+
+    const existing = await prisma.orderFile.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: 'OrderFile not found' });
+    }
+
+    let fileData = {};
+    if (req.file) {
+      fileData = {
+        fileName: req.file.filename,
+        filePath: `/uploads/orderfiles/${req.file.filename}`,
+      };
+    }
+
+    const updated = await prisma.orderFile.update({
+      where: { id: parseInt(id) },
+      data: {
+        status,
+        
+      },
+    });
+
+    const addOrderIntoActivityLog=await prisma.activityLog.create({
+  data: {
+    orderId:orderId,
+    productId:productId,
+    orderItemId:parseInt(orderItemId),
+    
+    action: `File Uploaded By`,
+    performedBy: updatedBy
+  }
+});
+
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error('Update OrderFile Error:', error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+};
+
+
+
+
+
+
+
+module.exports = { sendFileApprovalEmail,customerStatusUpdate };
+
+
+
