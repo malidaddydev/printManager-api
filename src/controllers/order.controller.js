@@ -154,7 +154,7 @@ const createOrder = async (req, res) => {
   try { 
     const { 
       customerId, 
-      orderNumber, 
+       
       title, 
       status = 'Draft', 
       startDate, 
@@ -225,7 +225,7 @@ const createOrder = async (req, res) => {
     const newOrder = await prisma.order.create({ 
       data: { 
         customerId: parseInt(customerId), 
-        orderNumber, 
+        
         title, 
         status, 
         startDate: startDate ? new Date(startDate) : null, 
@@ -462,7 +462,7 @@ const updateOrder = async (req, res) => {
     where: { id: orderId },
     data: {
         customerId: customerId ? parseInt(customerId) : undefined,
-        orderNumber,
+        
         title,
         status,
         startDate: startDate ? new Date(startDate) : undefined,
