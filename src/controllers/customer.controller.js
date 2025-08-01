@@ -4,10 +4,10 @@ const bcrypt = require('bcryptjs');
 
 exports.createCustomer=async (req, res) => {
   try {
-    const {lastName,fistName,company,mobile,mobile2,address,email}=req.body
+    const {lastName,firstName,company,mobile,mobile2,address,email}=req.body
     const customers=await prisma.customer.create({
       data:{
-        lastName,fistName,email,mobile,mobile2,company,address
+        lastName,firstName,email,mobile,mobile2,company,address
       }
 
     })
@@ -61,11 +61,11 @@ exports.deleteCustomer = async (req, res) => {
 exports.updateCustomer=async (req, res) => {
   try {
     const {id}=req.params
-    const {lastName,fistName,company,mobile,mobile2,address,email}=req.body
+    const {lastName,firstName,company,mobile,mobile2,address,email}=req.body
     const updatedCustomers=await prisma.customer.update({
       where:{id: parseInt(id)},
       data:{
-        lastName,fistName,email,mobile,mobile2,company,address
+        lastName,firstName,email,mobile,mobile2,company,address
       }
 
     })
