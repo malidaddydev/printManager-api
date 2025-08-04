@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 exports.createWorkflow = async (req, res) => {
   try {
-    const { title,createdBy} = req.body;
+    const { title,createdBy,stageId} = req.body;
 
     if (!title) {
       return res.status(400).json({ message: "Title is required" });
@@ -18,6 +18,14 @@ exports.createWorkflow = async (req, res) => {
       data: {
         title,
         createdBy
+        
+      }
+    });
+
+    const setRelation=await prisma.workflowStage.create({
+      data: {
+        workflowId:newWorkflow.id,
+        stageId:stageId
         
       }
     });
