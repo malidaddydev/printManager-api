@@ -423,6 +423,7 @@ const getSingleOrders = async(req,res)=>{
                 },
               },
             },
+            files:true,
             sizeQuantities: true,
             comments: true,
           },
