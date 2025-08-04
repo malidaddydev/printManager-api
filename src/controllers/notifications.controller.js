@@ -3,13 +3,11 @@ const prisma = new PrismaClient();
 
 // GET /api/notifications?userId=123
 exports.getNotifications = async (req, res) => {
-  const { userId } = req.query;
-
-  if (!userId) return res.status(400).json({ error: 'Missing userId' });
+ 
 
   try {
     const notifications = await prisma.notification.findMany({
-      where: { userId: parseInt(userId) },
+      
       orderBy: { createdAt: 'desc' }
     });
     res.json(notifications);
