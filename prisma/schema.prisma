@@ -21,6 +21,8 @@ model User {
   lastLoginAt  DateTime? @db.Timestamp(0)
   isManager    Boolean   @default(false)
   isMember     Boolean   @default(false)
+
+  notification Notification[]
 }
 
 model Customer {
@@ -218,4 +220,17 @@ model ActivityLog {
   action       String
   performedBy  String
   createdAt    DateTime @default(now())
+}
+
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  userId     Int?      // Foreign key to User model
+  title      String
+  message    String
+  type       String?  // e.g., "info", "warning", "success", "error"
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user       User?     @relation(fields: [userId], references: [id])
 }

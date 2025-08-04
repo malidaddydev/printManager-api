@@ -285,6 +285,15 @@ await prisma.order.update({
   }
 });
     
+
+await prisma.notification.create({
+  data: {
+    
+    title: 'Order Created',
+    message: `New order ${newOrderNumber} created by ${createdBy} .`,
+    type: 'success',
+  }
+});
  
     // Send confirmation email to customer
     const emailResult = await sendOrderConfirmationEmail(newOrder,newOrderNumber);
@@ -525,6 +534,16 @@ const deleteOrder = async (req, res) => {
     // orderId: orderId,
     action: `Order Deleted by `,
     performedBy: performedBy
+  }
+});
+
+
+await prisma.notification.create({
+  data: {
+    
+    title: 'Order Created',
+    message: `order ${existingOrder} was deleted by ${performedBy} .`,
+    type: 'success',
   }
 });
     
