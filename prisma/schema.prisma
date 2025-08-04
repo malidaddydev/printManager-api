@@ -226,6 +226,7 @@ model ActivityLog {
 model Notification {
   id         Int      @id @default(autoincrement())
   userId     Int?      // Foreign key to User model
+  orderId    Int?
   title      String
   message    String
   type       String?  // e.g., "info", "warning", "success", "error"

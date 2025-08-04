@@ -288,7 +288,7 @@ await prisma.order.update({
 
 await prisma.notification.create({
   data: {
-    
+    orderId:newOrder.id,
     title: 'Order Created',
     message: `New order ${newOrderNumber} created by ${createdBy} .`,
     type: 'success',
@@ -544,6 +544,7 @@ await prisma.notification.create({
     title: 'Order deleted',
     message: `order ${existingOrder.orderNumber} was deleted by ${performedBy} .`,
     type: 'success',
+    
   }
 });
     
