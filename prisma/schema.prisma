@@ -165,7 +165,7 @@ model OrderFile {
   orderItemId  Int?
 
   fileName     String    @db.VarChar(255)
-  size         String?    @db.VarChar(255)
+  size         Int?    
   filePath     String    @db.VarChar(500)
   status       String @default("Pending") @db.VarChar(255)
   approvedBy   String?   @db.VarChar(100)
