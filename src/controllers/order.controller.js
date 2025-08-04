@@ -386,7 +386,11 @@ const getAllOrders = async(req,res)=>{
                   include: {
                     workflow: {
                       include: {
-                        stages: true, // Workflow stages
+                        stages: {
+                          include:{
+                            stage:true
+                          }
+                        }, // Workflow stages
                       },
                     },
                   },
@@ -427,8 +431,10 @@ const getSingleOrders = async(req,res)=>{
                   include: {
                     workflow: {
                       include: {
-                        stages: true, // Workflow stages
-                      },
+                          include:{
+                            stage:true
+                          }
+                        },
                     },
                   },
                 },
