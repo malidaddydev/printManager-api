@@ -542,7 +542,7 @@ await prisma.notification.create({
   data: {
     
     title: 'Order Created',
-    message: `order ${existingOrder} was deleted by ${performedBy} .`,
+    message: `order ${existingOrder.orderNumber} was deleted by ${performedBy} .`,
     type: 'success',
   }
 });
