@@ -12,6 +12,7 @@ const createOrderFile = async (req, res) => {
 
     const fileName = req.file.filename;
     const filePath = `/orderuploads/${fileName}`;
+    const size=req.file.size;
 
     const orderFile = await prisma.orderFile.create({
       data: {
@@ -20,6 +21,7 @@ const createOrderFile = async (req, res) => {
         orderItemId: orderItemId ? parseInt(orderItemId) : null,
         fileName,
         filePath,
+        size,
         uploadedBy,
       },
     });
