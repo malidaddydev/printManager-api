@@ -541,7 +541,7 @@ const deleteOrder = async (req, res) => {
 await prisma.notification.create({
   data: {
     
-    title: 'Order Created',
+    title: 'Order deleted',
     message: `order ${existingOrder.orderNumber} was deleted by ${performedBy} .`,
     type: 'success',
   }
