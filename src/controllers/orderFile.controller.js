@@ -57,7 +57,11 @@ const getOrderFiles = async (req, res) => {
         ...(productId && { productId: parseInt(productId) }),
       },
       include:{
-        order:true
+        order:{
+          include:{
+            customer:true
+          }
+        }
       },
       orderBy: { createdAt: 'desc' },
     });
