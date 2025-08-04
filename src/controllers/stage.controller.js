@@ -32,7 +32,7 @@ exports.getAllStages = async (req, res) => {
   try {
     const stages = await prisma.stage.findMany({
       include: {
-        workflow: true
+        workflows: true
       }
     });
 
