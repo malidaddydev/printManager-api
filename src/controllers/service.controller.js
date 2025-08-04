@@ -31,8 +31,14 @@ exports.getAllServices = async (req, res) => {
     const services = await prisma.service.findMany({
       include: {
         workflow: {
-            include:{stages:true}
-        },
+                      include: {
+                        stages: {
+                          include:{
+                            stage:true
+                          }
+                        }, // Workflow stages
+                      },
+                    },
         products: true,
 
       }
@@ -53,7 +59,15 @@ exports.getServiceById = async (req, res) => {
     const service = await prisma.service.findUnique({
       where: { id: parseInt(id) },
       include: {
-        workflow: true,
+        workflow: {
+                      include: {
+                        stages: {
+                          include:{
+                            stage:true
+                          }
+                        }, // Workflow stages
+                      },
+                    },
         products: true
       }
     });
