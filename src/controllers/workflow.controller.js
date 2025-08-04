@@ -49,7 +49,11 @@ exports.getAllWorkflows = async (req, res) => {
   try {
     const workflows = await prisma.workflow.findMany({
       include: {
-        stages: true,
+        stages: {
+          include:{
+            stage:true
+          }
+        },
         services: true
       }
     });
@@ -68,7 +72,11 @@ exports.getWorkflowById = async (req, res) => {
     const workflow = await prisma.workflow.findUnique({
       where: { id: parseInt(id) },
       include: {
-        stages: true,
+        stages: {
+          include:{
+            stage:true
+          }
+        },
         services: true
       }
     });
