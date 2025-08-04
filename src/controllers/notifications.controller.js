@@ -33,11 +33,11 @@ exports.markAsRead = async (req, res) => {
 
 // PUT /api/notifications/read-all/:userId
 exports.markAllAsRead = async (req, res) => {
-  const { userId } = req.params;
+  
 
   try {
     await prisma.notification.updateMany({
-      where: { userId: parseInt(userId), isRead: false },
+      where: { isRead: false },
       data: { isRead: true }
     });
     res.json({ message: 'All notifications marked as read' });
