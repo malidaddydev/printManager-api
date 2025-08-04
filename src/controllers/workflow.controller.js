@@ -22,7 +22,7 @@ exports.createWorkflow = async (req, res) => {
       }
     });
 
-    const setRelation=stageIds.map(async(stageId)=>(
+    const setRelation=await Promise.all(stageIds.map(async(stageId)=>(
      
      await prisma.workflowStage.create({
            data: {
@@ -35,7 +35,7 @@ exports.createWorkflow = async (req, res) => {
 
 
     ))  
-
+  )
 
     res.status(201).json(newWorkflow);
   } catch (error) {
