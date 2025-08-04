@@ -133,24 +133,37 @@ model Service {
 }
 
 model Workflow {
-  id          Int      @id @default(autoincrement())
-  title       String   // From UI (required)
-  stages      Stage[]  // 1-to-many with Stage
-  services    Service[] // 1-to-many with Service
-  createdBy   String?   @db.VarChar(100)
-  updatedBy   String?   @db.VarChar(100)
-
+  id        Int               @id @default(autoincrement())
+  title     String
+  stages    WorkflowStage[]   // Join table
+  services  Service[]
+  createdBy String?           @db.VarChar(100)
+  updatedBy String?           @db.VarChar(100)
 }
 
 model Stage {
-  id          Int       @id @default(autoincrement())
-  title       String    // From UI (required)
-  color       String    // Hex color code
-  days        Int       // Duration in days
-  workflow    Workflow? @relation(fields: [workflowId], references: [id])
-  workflowId  Int?      // Many-to-1 with Workflow (many stages belong to one workflow)
-  createdBy   String?   @db.VarChar(100)
-  updatedBy   String?   @db.VarChar(100)
+  id        Int               @id @default(autoincrement())
+  state     String
+  name      String
+  team      String
+  color     String
+  days      Int
+  workflows WorkflowStage[]   // Join table
+  createdBy String?           @db.VarChar(100)
+  updatedBy String?           @db.VarChar(100)
+}
+
+model WorkflowStage {
+  
+  workflow   Workflow @relation(fields: [workflowId], references: [id])
+  workflowId Int
+
+  stage      Stage    @relation(fields: [stageId], references: [id])
+  stageId    Int
+
+  assignedAt DateTime @default(now()) // Example of additional field
+
+  @@id([workflowId, stageId]) // Composite primary key
 }
 
 
