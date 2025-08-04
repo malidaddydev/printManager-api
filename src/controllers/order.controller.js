@@ -166,7 +166,8 @@ const createOrder = async (req, res) => {
  
     const uploadedFiles = req.files?.map(file => ({ 
       filename: file.filename, 
-      path: `/orderuploads/${file.filename}` 
+      path: `/orderuploads/${file.filename}`,
+      size: file.size // Add file size in bytes
     })) || []; 
  
     let parsedItems = []; 
@@ -234,7 +235,8 @@ const createOrder = async (req, res) => {
         files: { 
           create: uploadedFiles.map(f => ({ 
             fileName: f.filename, 
-            filePath: f.path, 
+            filePath: f.path,
+            size: f.size,
             uploadedBy: createdBy 
           })) 
         }, 
