@@ -17,6 +17,7 @@ const activityLogRoutes = require('./routes/activitylog.routes');
 const orderCommentRoutes = require('./routes/orderComment.routes');
 const customerApprovalRoutes = require('./routes/customerApproval.routes');
 const notificationRoutes=require('./routes/notification.routes')
+const orgRoutes = require('./routes/orgSettings.routes');
 
 const cors = require('cors');
 
@@ -54,7 +55,7 @@ app.use('/api', uploadRoutes);
 app.use('/api/activitylogs', activityLogRoutes);
 app.use('/api/customerApprovals',customerApprovalRoutes );
 app.use('/api/notifications',notificationRoutes );
-// app.use('/api/customerApprovals',customerApprovalRoutes );
+app.use('/api/organization-settings', orgRoutes);
 
 
 
