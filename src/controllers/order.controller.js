@@ -627,11 +627,19 @@ Your Company Team`
 const cancelOrder = async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
+    const status = req.body.status;
     const performedBy = req.user?.email || req.user?.username || 'Unknown';
 
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },
       include: { customer: true }  // Include customer info for email
+    });
+
+    const updateStatus=await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status
+      }
     });
 
     if (!existingOrder) {
@@ -667,12 +675,7 @@ const cancelOrder = async (req, res) => {
     const result = await transporter.sendMail(mailOptions);
     console.log('Cancellation email sent:', result.messageId);
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: 'cancelled'
-      }
-    });
+    
 
     res.status(200).json({ message: "Order cancelled successfully" });
   } catch (err) {
