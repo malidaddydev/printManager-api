@@ -189,11 +189,15 @@ const createOrder = async (req, res) => {
       include: {
         service: {
           include: {
-            workflow: {
-              include: {
-                stages: true
-              }
-            }
+             workflow: {
+                      include: {
+                        stages: {
+                          include:{
+                            stage:true
+                          }
+                        }, // Workflow stages
+                      },
+                    },
           }
         }
       }
@@ -202,7 +206,7 @@ const createOrder = async (req, res) => {
     
 
 
-    const firstStage = product?.service?.workflow?.stages?.stage?.[0]?.name || 'Pending';
+    const firstStage = product?.service?.workflow?.stages?.stage[0]?.name || 'Pending';
 
     return {
       productId: parseInt(item.productId),

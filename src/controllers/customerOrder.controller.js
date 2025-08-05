@@ -209,10 +209,14 @@ if (existingCustomer){
         service: {
           include: {
             workflow: {
-              include: {
-                stages: true
-              }
-            }
+                      include: {
+                        stages: {
+                          include:{
+                            stage:true
+                          }
+                        }, // Workflow stages
+                      },
+                    },
           }
         }
       }
@@ -221,7 +225,7 @@ if (existingCustomer){
     
 
 
-    const firstStage = product?.service?.workflow?.stages?.stage?.[0]?.name || 'Pending';
+    const firstStage = product?.service?.workflow?.stages?.stage[0]?.name || 'Pending';
 
     return {
       productId: parseInt(item.productId),
@@ -354,11 +358,15 @@ await prisma.notification.create({
       include: {
         service: {
           include: {
-            workflow: {
-              include: {
-                stages: true
-              }
-            }
+             workflow: {
+                      include: {
+                        stages: {
+                          include:{
+                            stage:true
+                          }
+                        }, // Workflow stages
+                      },
+                    },
           }
         }
       }
@@ -367,7 +375,7 @@ await prisma.notification.create({
     
 
 
-    const firstStage = product?.service?.workflow?.stages?.stage?.[0]?.name || 'Pending';
+    const firstStage = product?.service?.workflow?.stages?.stage[0]?.name || 'Pending';
 
     return {
       productId: parseInt(item.productId),
