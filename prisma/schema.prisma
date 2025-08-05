@@ -29,7 +29,7 @@ model Customer {
   id          Int     @id @default(autoincrement())
   lastName    String  @db.VarChar(255)
   firstName   String  @db.VarChar(255)
-  email       String  @db.VarChar(255)
+  email       String  @unique @db.VarChar(100)
   mobile      String  @db.VarChar(20)
   mobile2     String? @db.VarChar(20)
   company     String? @db.VarChar(255)
@@ -155,10 +155,10 @@ model Stage {
 
 model WorkflowStage {
   
-  workflow   Workflow @relation(fields: [workflowId], references: [id])
+  workflow   Workflow @relation(fields: [workflowId], references: [id],onDelete: Cascade)
   workflowId Int
 
-  stage      Stage    @relation(fields: [stageId], references: [id])
+  stage      Stage    @relation(fields: [stageId], references: [id],onDelete: Cascade)
   stageId    Int
 
   assignedAt DateTime @default(now()) // Example of additional field
