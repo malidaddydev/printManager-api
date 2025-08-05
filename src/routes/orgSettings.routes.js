@@ -8,7 +8,7 @@ const { isAdmin } = require('../middlewares/auth.middleware');
 
 
 router.get('/', getSettings);
-router.put('/', isAdmin, upload.single('logo'), updateSettings);
+router.put('/',  upload.single('logo'), updateSettings);
 router.post('/',  upload.single('logo'), createSettings);
 
 
