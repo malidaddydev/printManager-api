@@ -287,7 +287,7 @@ await prisma.order.update({
     action: `Order Created By"`,
     performedBy: createdBy
   }
-});
+}); 
     
 
 await prisma.notification.create({
@@ -575,6 +575,55 @@ await prisma.notification.create({
 };
 
 
+
+
+
+
+const createEmailTransporterForCancellation = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+};
+
+const generateCancellationEmail = (customer, order) => {
+  return {
+    subject: `Order Cancelled: ${order.orderNumber}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+        <h2>Order Cancellation Notice</h2>
+        <p>Dear ${customer.name},</p>
+        <p>We regret to inform you that your order <strong>${order.orderNumber}</strong> has been cancelled.</p>
+        <p>If this was a mistake or you have any questions, feel free to reach out to our support team.</p>
+        <p>Thank you for considering us, and we hope to serve you again in the future.</p>
+        <p>Best regards,<br>Your Company Team</p>
+      </div>
+    `,
+    text: `Order Cancellation Notice - ${order.orderNumber}
+
+Dear ${customer.name},
+
+We regret to inform you that your order ${order.orderNumber} has been cancelled.
+
+If you have any questions, please contact our support team.
+
+Best regards,
+Your Company Team`
+  };
+};
+
+
+
+
+
+
+
+
+
+
 const cancelOrder = async (req, res) => {
   try {
 
@@ -593,7 +642,7 @@ const cancelOrder = async (req, res) => {
     const deletelog=await prisma.activityLog.create({
   data: {
     // orderId: orderId,
-    action: `Order Deleted by `,
+    action: `Order Cancelled by `,
     performedBy: performedBy
   }
 });
@@ -608,8 +657,20 @@ await prisma.notification.create({
     
   }
 });
-    
+     const transporter = createEmailTransporterForCancellation();
+    const emailContent = generateCancellationEmail(existingOrder.customer, existingOrder);
 
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      to: existingOrder.customer.email,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Cancellation email sent:', result.messageId);
+    
     await prisma.order.update({
       where: { id: orderId },
       data:{
