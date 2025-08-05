@@ -4,18 +4,19 @@ const prisma = new PrismaClient();
 // Create a Stage
 exports.createStage = async (req, res) => {
   try {
-    const { title, color, days, workflowId,createdBy } = req.body;
+    const { state, name, team, color, days, createdBy } = req.body;
 
-    if (!title || !color || typeof days !== 'number') {
-      return res.status(400).json({ message: "Title, color, and days are required" });
+    if (!state || !name || !team || !color || typeof days !== 'number') {
+      return res.status(400).json({ message: "State, name, team, color, and days are required" });
     }
 
     const stage = await prisma.stage.create({
       data: {
-        title,
+        state,
+        name,
+        team,
         color,
         days,
-        workflowId: workflowId || null,
         createdBy
       }
     });
@@ -27,12 +28,17 @@ exports.createStage = async (req, res) => {
   }
 };
 
+
 // Get All Stages
 exports.getAllStages = async (req, res) => {
   try {
     const stages = await prisma.stage.findMany({
       include: {
-        workflows: true
+        workflows: {
+          include: {
+            workflow: true
+          }
+        }
       }
     });
 
@@ -43,6 +49,8 @@ exports.getAllStages = async (req, res) => {
   }
 };
 
+
+
 // Get Stage by ID
 exports.getStageById = async (req, res) => {
   const { id } = req.params;
@@ -51,7 +59,11 @@ exports.getStageById = async (req, res) => {
     const stage = await prisma.stage.findUnique({
       where: { id: parseInt(id) },
       include: {
-        workflow: true
+        workflows: {
+          include: {
+            workflow: true
+          }
+        }
       }
     });
 
@@ -66,19 +78,21 @@ exports.getStageById = async (req, res) => {
   }
 };
 
+
 // Update Stage
 exports.updateStage = async (req, res) => {
   const { id } = req.params;
-  const { title, color, days, workflowId,updatedBy } = req.body;
+  const { state, name, team, color, days, updatedBy } = req.body;
 
   try {
     const updatedStage = await prisma.stage.update({
       where: { id: parseInt(id) },
       data: {
-        title,
+        state,
+        name,
+        team,
         color,
         days,
-        workflowId: workflowId || null,
         updatedBy
       }
     });
@@ -92,6 +106,7 @@ exports.updateStage = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // Delete Stage
 exports.deleteStage = async (req, res) => {
@@ -111,3 +126,4 @@ exports.deleteStage = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
