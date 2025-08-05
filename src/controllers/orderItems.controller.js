@@ -10,7 +10,7 @@ const createOrderItem = async (req, res) => {
       quantity,
       price,
       createdBy,
-      sizeQuantities, // [{ size: 'M', quantity: 3 }, ...]
+      sizeQuantities, 
     } = req.body;
 
     // Basic validation
