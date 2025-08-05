@@ -595,7 +595,7 @@ const generateCancellationEmail = (customer, order) => {
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
         <h2>Order Cancellation Notice</h2>
-        <p>Dear ${customer.name},</p>
+        <p>Dear ${customer.firstName} ${customer.lastName} ,</p>
         <p>We regret to inform you that your order <strong>${order.orderNumber}</strong> has been cancelled.</p>
         <p>If this was a mistake or you have any questions, feel free to reach out to our support team.</p>
         <p>Thank you for considering us, and we hope to serve you again in the future.</p>
