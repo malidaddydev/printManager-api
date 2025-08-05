@@ -11,6 +11,7 @@ const { authenticate } = require('../middlewares/auth.middleware');
 router.post('/', upload.array('files'), createOrder);
 router.get('/', getAllOrders);
 router.get('/token/:token', orderFromToken);
+router.get('/cancel-order/:id', orderFromToken);
 router.get('/productColors/:id', getProductColors);
 router.get('/productSizes/:id', getProductSizes);
 router.get('/:id', getSingleOrders);
