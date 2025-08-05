@@ -626,38 +626,34 @@ Your Company Team`
 
 const cancelOrder = async (req, res) => {
   try {
-
-    
     const orderId = parseInt(req.params.id);
     const performedBy = req.user?.email || req.user?.username || 'Unknown';
 
     const existingOrder = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
+      include: { customer: true }  // Include customer info for email
     });
 
     if (!existingOrder) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    const deletelog=await prisma.activityLog.create({
-  data: {
-    // orderId: orderId,
-    action: `Order Cancelled by `,
-    performedBy: performedBy
-  }
-});
+    await prisma.activityLog.create({
+      data: {
+        action: `Order Cancelled by`,
+        performedBy: performedBy
+      }
+    });
 
+    await prisma.notification.create({
+      data: {
+        title: 'Order Cancelled',
+        message: `Order ${existingOrder.orderNumber} was cancelled by ${performedBy}.`,
+        type: 'success'
+      }
+    });
 
-await prisma.notification.create({
-  data: {
-    
-    title: 'Order Cancelled',
-    message: `order ${existingOrder.orderNumber} was cancelled by ${performedBy} .`,
-    type: 'success',
-    
-  }
-});
-     const transporter = createEmailTransporterForCancellation();
+    const transporter = createEmailTransporterForCancellation();
     const emailContent = generateCancellationEmail(existingOrder.customer, existingOrder);
 
     const mailOptions = {
@@ -670,19 +666,17 @@ await prisma.notification.create({
 
     const result = await transporter.sendMail(mailOptions);
     console.log('Cancellation email sent:', result.messageId);
-    
+
     await prisma.order.update({
       where: { id: orderId },
-      data:{
-        status:'cancelled'
+      data: {
+        status: 'cancelled'
       }
     });
 
-
-
-    res.status(200).json({ message: "Order deleted successfully" });
+    res.status(200).json({ message: "Order cancelled successfully" });
   } catch (err) {
-    console.error("Delete Order Error:", err);
+    console.error("Cancel Order Error:", err);
     res.status(500).json({ message: "Internal server error", error: err.message });
   }
 };
