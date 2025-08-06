@@ -225,7 +225,7 @@ if (existingCustomer){
     
 
 
-    const firstStage = product?.service?.workflow?.stages?.stage[0]?.name || 'Pending';
+    const firstStage = product?.service?.workflow?.stages?.[0]?.stage?.name || 'Pending';
 
     return {
       productId: parseInt(item.productId),
@@ -375,8 +375,7 @@ await prisma.notification.create({
     
 
 
-    const firstStage = product?.service?.workflow?.stages?.stage[0]?.name || 'Pending';
-
+    const firstStage = product?.service?.workflow?.stages?.[0]?.stage?.name || 'Pending';
     return {
       productId: parseInt(item.productId),
       color: item.color,

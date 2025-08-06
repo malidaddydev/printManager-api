@@ -206,7 +206,7 @@ const createOrder = async (req, res) => {
     
 
 
-    const firstStage = product?.service?.workflow?.stages?.stage[0]?.name || 'Pending';
+    const firstStage = product?.service?.workflow?.stages?.[0]?.stage?.name || 'Pending';
 
     return {
       productId: parseInt(item.productId),
