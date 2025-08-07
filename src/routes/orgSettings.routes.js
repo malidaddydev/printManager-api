@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('../middlewares/uploadOrderFiles');const { getSettings, updateSettings, createSettings } = require('../controllers/orgSettings.controller');
+const upload = require('../middlewares/uploadOrderFiles');
+const { getSettings, updateSettings, createSettings } = require('../controllers/orgSettings.controller');
 const { isAdmin } = require('../middlewares/auth.middleware');
 
 

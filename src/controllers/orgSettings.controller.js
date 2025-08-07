@@ -17,7 +17,7 @@ exports.updateSettings = async (req, res) => {
  
   
   if (req.file) {
-    logo = `/orderuploads/${req.file.filename}`;
+    logo = req.file.path;
   }
 
   try {
