@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/product.controller');
-const upload = require('../middlewares/uploadProductFiles');
+const upload = require('../middlewares/uploadOrderFiles');
 
 router.post('/', upload.array('files'), productController.createProduct);
 router.get('/', productController.getAllProducts);

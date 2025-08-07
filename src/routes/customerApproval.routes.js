@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('../middlewares/upload.middleware.js');
-const {
+const upload = require('../middlewares/uploadOrderFiles');const {
   sendFileApprovalEmail,
   customerStatusUpdate
 } = require('../controllers/customerApproval.controller.js');
