@@ -165,9 +165,10 @@ const createOrder = async (req, res) => {
     } = req.body; 
  
     const uploadedFiles = req.files?.map(file => ({ 
-      filename: file.filename, 
-      path: `/orderuploads/${file.filename}`,
-      size: file.size // Add file size in bytes
+     fileName: file.originalname,     
+  filePath: file.path,             
+  size: null,                      
+  cloudinaryId: file.filename 
     })) || []; 
  
     let parsedItems = []; 
@@ -190,14 +191,14 @@ const createOrder = async (req, res) => {
         service: {
           include: {
              workflow: {
-                      include: {
-                        stages: {
-                          include:{
-                            stage:true
-                          }
-                        }, // Workflow stages
-                      },
-                    },
+                include: {
+                  stages: {
+                    include:{
+                      stage:true
+                    }
+                  }, // Workflow stages
+                },
+              },
           }
         }
       }
@@ -238,10 +239,10 @@ const createOrder = async (req, res) => {
         notes, 
         files: { 
           create: uploadedFiles.map(f => ({ 
-            fileName: f.filename, 
-            filePath: f.path,
-            size: f.size,
-            uploadedBy: createdBy 
+           fileName: f.fileName, 
+    filePath: f.filePath,
+    size: f.size, // will be null for now
+    uploadedBy: createdBy 
           })) 
         }, 
         items: { 

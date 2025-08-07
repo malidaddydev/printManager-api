@@ -184,9 +184,10 @@ if (existingCustomer){
 
 
     const uploadedFiles = req.files?.map(file => ({ 
-      filename: file.filename, 
-      path: `/orderuploads/${file.filename}`,
-      size: file.size // Add file size in bytes
+     fileName: file.originalname,     // Original uploaded file name
+  filePath: file.path,             // Cloudinary-hosted URL
+  size: null,                      // Cloudinary doesn't provide size by default
+  cloudinaryId: file.filename    
     })) || []; 
  
     let parsedItems = []; 
@@ -257,10 +258,10 @@ if (existingCustomer){
         notes, 
         files: { 
           create: uploadedFiles.map(f => ({ 
-            fileName: f.filename, 
-            filePath: f.path,
-            size: f.size,
-            uploadedBy: createdBy 
+            fileName: f.fileName, 
+    filePath: f.filePath,
+    size: f.size, // will be null for now
+    uploadedBy: createdBy 
           })) 
         }, 
         items: { 
@@ -334,9 +335,10 @@ await prisma.notification.create({
 }else{
 
     const uploadedFiles = req.files?.map(file => ({ 
-      filename: file.filename, 
-      path: `/orderuploads/${file.filename}`,
-      size: file.size // Add file size in bytes
+      fileName: file.originalname,     // Original uploaded file name
+  filePath: file.path,             // Cloudinary-hosted URL
+  size: null,                      // Cloudinary doesn't provide size by default
+  cloudinaryId: file.filename  // Add file size in bytes
     })) || []; 
  
     let parsedItems = []; 
@@ -416,10 +418,10 @@ await prisma.notification.create({
         notes, 
         files: { 
           create: uploadedFiles.map(f => ({ 
-            fileName: f.filename, 
-            filePath: f.path,
-            size: f.size,
-            uploadedBy: createdBy 
+             fileName: f.fileName, 
+    filePath: f.filePath,
+    size: f.size, // will be null for now
+    uploadedBy: createdBy  
           })) 
         }, 
         items: { 

@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { cloudinary } = require('../Config/cloudinary');
 const prisma = new PrismaClient();
 
 
@@ -10,9 +11,10 @@ const createOrderFile = async (req, res) => {
       return res.status(400).json({ message: 'File is required' });
     }
 
-    const fileName = req.file.filename;
-    const filePath = `/orderuploads/${fileName}`;
-    const size=req.file.size;
+    const fileName = req.file.originalname;
+    const filePath = req.file.path;
+    const size=null;
+    const cloudinaryId=req.file.filename
 
     const orderFile = await prisma.orderFile.create({
       data: {
@@ -22,6 +24,7 @@ const createOrderFile = async (req, res) => {
         fileName,
         filePath,
         size,
+        cloudinaryId,
         uploadedBy,
       },
     });
@@ -53,7 +56,7 @@ const getOrderFiles = async (req, res) => {
     const files = await prisma.orderFile.findMany({
       where: {
         ...(orderId && { orderId: parseInt(orderId) }),
-        ...(orderItemId && { orderId: parseInt(orderItemId) }),
+        ...(orderItemId && { orderItemId: parseInt(orderItemId) }),
         ...(productId && { productId: parseInt(productId) }),
       },
       include:{
@@ -98,8 +101,11 @@ const updateOrderFile = async (req, res) => {
     let fileData = {};
     if (req.file) {
       fileData = {
-        fileName: req.file.filename,
-        filePath: `/uploads/orderfiles/${req.file.filename}`,
+        fileName: req.file.originalname,
+        filePath: req.file.path,
+        size:null,
+        cloudinaryId:req.file.filename
+
       };
     }
 

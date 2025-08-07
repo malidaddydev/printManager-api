@@ -13,8 +13,10 @@ exports.createProduct = async (req, res) => {
 
     // Save uploaded files
     const uploadedFiles = req.files?.map(file => ({
-      filename: file.filename,
-      path: `/orderuploads/${file.filename}`
+     fileName: file.originalname,     // Original uploaded file name
+  filePath: file.path,             // Cloudinary-hosted URL
+  size: null,                      // Cloudinary doesn't provide size by default
+  cloudinaryId: file.filename  
     })) || [];
 
     // Parse colorOptions and sizeQuantities if sent as strings
@@ -33,9 +35,10 @@ exports.createProduct = async (req, res) => {
         createdBy,
         files: {
           create: uploadedFiles.map(f => ({
-            fileName: f.filename,
-            filePath: f.path,
-            uploadedBy:createdBy
+            fileName: f.fileName, 
+    filePath: f.filePath,
+    size: f.size, // will be null for now
+    uploadedBy: createdBy 
           }))
         }
       
@@ -126,8 +129,10 @@ exports.updateProduct = async (req, res) => {
     }
 
     const uploadedFiles = req.files?.map(file => ({
-      filename: file.filename,
-      path: `/orderuploads/${file.filename}`
+      fileName: file.originalname,     // Original uploaded file name
+  filePath: file.path,             // Cloudinary-hosted URL
+  size: null,                      // Cloudinary doesn't provide size by default
+  cloudinaryId: file.filename 
     })) || [];
 
     // Parse colorOptions and sizeQuantities if sent as strings
@@ -155,9 +160,10 @@ exports.updateProduct = async (req, res) => {
         ...(uploadedFiles.length > 0 && {
           files: {
             create: uploadedFiles.map(f => ({
-              fileName: f.filename,
-              filePath: f.path,
-              updatedBy:updatedBy
+              fileName: f.fileName, 
+    filePath: f.filePath,
+    size: f.size, // will be null for now
+    uploadedBy: createdBy 
             }))
           }
         })
