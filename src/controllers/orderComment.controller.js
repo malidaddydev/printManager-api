@@ -80,17 +80,17 @@ exports.createComment = async (req, res) => {
       },
     });
 
-    const order = await prisma.order.findUnique({
-      where: { id: parseInt(orderId) },
-      include: {
-        
-            customer: true
-          
-        }
-      
-    });
-
+    
     if (!is_internal && orderId) {
+      const order = await prisma.order.findUnique({
+        where: { id: parseInt(orderId) },
+        include: {
+          
+              customer: true
+            
+          }
+        
+      });
       const transporter = createEmailTransporter();
     const emailContent = generateFileApprovalEmail(newComment, order.customer, order);
 
