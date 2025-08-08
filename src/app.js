@@ -19,6 +19,7 @@ const customerApprovalRoutes = require('./routes/customerApproval.routes');
 const notificationRoutes=require('./routes/notification.routes')
 const orgRoutes = require('./routes/orgSettings.routes');
 const customerOrderRoutes = require('./routes/customerOrder.routes');
+const sendEmailRoutes = require('./routes/sendEmail.routes');
 
 const cors = require('cors');
 
@@ -58,6 +59,7 @@ app.use('/api/customerApprovals',customerApprovalRoutes );
 app.use('/api/notifications',notificationRoutes );
 app.use('/api/organization-settings', orgRoutes);
 app.use('/api/customer-order', customerOrderRoutes);
+app.use('/api/sendEmail', sendEmailRoutes);
 
 
 
