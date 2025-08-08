@@ -431,70 +431,50 @@ const getAllPaginationOrders = async(req,res)=>{
     const skip=(page-1)*limit
 
      const where = search
-      ? {
-          OR: [
-            // Order fields
-            {
-              orderNumber: { contains: search, mode: "insensitive" },
-            },
-            {
-              title: { contains: search, mode: "insensitive" },
-            },
-            {
-              status: { contains: search, mode: "insensitive" },
-            },
-            {
-              createdBy: { contains: search, mode: "insensitive" },
-            },
-            {
-              updatedBy: { contains: search, mode: "insensitive" },
-            },
+  ? {
+      OR: [
+        { orderNumber: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { status: { contains: search, mode: 'insensitive' } },
+        { createdBy: { contains: search, mode: 'insensitive' } },
+        { updatedBy: { contains: search, mode: 'insensitive' } },
 
-            // Customer fields
-            {
-              customer: {
-                firstName: { contains: search, mode: "insensitive" },
-              },
-            },
-            {
-              customer: {
-                lastName: { contains: search, mode: "insensitive" },
-              },
-            },
-            {
-              customer: {
-                email: { contains: search, mode: "insensitive" },
-              },
-            },
-            {
-              customer: {
-                mobile: { contains: search, mode: "insensitive" },
-              },
-            },
-            {
-              customer: {
-                mobile2: { contains: search, mode: "insensitive" },
-              },
-            },
-            {
-              customer: {
-                company: { contains: search, mode: "insensitive" },
-              },
-            },
+        // Related model: customer
+        {
+          customer: {
+            firstName: { contains: search, mode: 'insensitive' }
+          }
+        },
+        {
+          customer: {
+            lastName: { contains: search, mode: 'insensitive' }
+          }
+        },
+        {
+          customer: {
+            email: { contains: search, mode: 'insensitive' }
+          }
+        },
+        {
+          customer: {
+            mobile: { contains: search, mode: 'insensitive' }
+          }
+        },
+        {
+          customer: {
+            mobile2: { contains: search, mode: 'insensitive' }
+          }
+        },
+        {
+          customer: {
+            company: { contains: search, mode: 'insensitive' }
+          }
+        },
 
-            // Product title inside items
-            {
-              items: {
-                some: {
-                  product: {
-                    title: { contains: search, mode: "insensitive" },
-                  },
-                },
-              },
-            },
-          ],
-        }
-      : {};
+        
+      ]
+    }
+  : {};
 
     
     const orders = await prisma.order.findMany({
