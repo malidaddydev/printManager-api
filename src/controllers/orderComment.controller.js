@@ -23,7 +23,7 @@ html: `
     <p>Dear ${customer.name},</p>
     <p>A new comment has been added to your order <strong>${order.orderNumber}</strong>.</p>
     <ul>
-      <li><strong>Comment:</strong> ${comment.text}</li>
+      <li><strong>Comment:</strong> ${comment.commentText}</li>
       <li><strong>Added At:</strong> ${new Date(comment.createdAt).toLocaleString()}</li>
     </ul>
     <p>You can use this token to view and respond to the comment:</p>
@@ -90,7 +90,7 @@ exports.createComment = async (req, res) => {
       
     });
 
-    if (!is_internal) {
+    if (!is_internal && orderId) {
       const transporter = createEmailTransporter();
     const emailContent = generateFileApprovalEmail(newComment, order.customer, order);
 

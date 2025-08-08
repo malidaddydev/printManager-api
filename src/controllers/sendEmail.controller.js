@@ -92,3 +92,72 @@ Your Company Team`
 };
 
 
+const workflowStatusChange=async(req,res)=>{
+
+     try {
+    const { id } = req.params;
+    const {
+      
+      currentStage,
+     
+      updatedBy,
+      // Optional: new list of sizes to replace
+    } = req.body;
+
+    const existingOrderItem = await prisma.orderItem.findUnique({
+      where: { id: parseInt(id) },
+      include: { order:{
+        include:{
+            customer:true
+        }
+      } },
+    });
+
+    if (!existingOrderItem) {
+      return res.status(404).json({ message: 'OrderItem not found' });
+    }
+
+    // Update main order item fields
+    const updatedOrderItem = await prisma.orderItem.update({
+      where: { id: parseInt(id) },
+      data: {
+        
+        currentStage,
+        
+        updatedBy,
+      },
+    });
+
+    const transporter = createEmailTransporter();
+    const emailContent = generateWorkFlowChangeEmail(newComment, order.customer, order);
+
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      to: order.customer.email,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text
+    };
+
+    const resultDeEmail = await transporter.sendMail(mailOptions);
+    
+    const result = await prisma.orderItem.findUnique({
+      where: { id: parseInt(id) },
+      
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Update OrderItem Error:', error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+    
+
+}
+const orderStatusChange=(req,res)=>{
+
+}
+
+module.exports = {
+    workflowStatusChange,orderStatusChange                                                  
+};
