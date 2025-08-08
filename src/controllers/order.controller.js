@@ -54,7 +54,7 @@ const generateOrderConfirmationEmail = (order,orderNumber) => {
           </div>
           
           <div class="content">
-            <p>Dear ${order.customer.name},</p>
+            <p>Dear ${order.customer.firstName} ${order.customer.lastName},</p>
             
             <p>Thank you for your order! We've received your order and it's being processed.</p>
             
