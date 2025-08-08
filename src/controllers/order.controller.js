@@ -426,35 +426,68 @@ const getAllPaginationOrders = async(req,res)=>{
 
     const page=parseInt(req.query.page)||1
     const limit=parseInt(req.query.limit)||10
-    const search=req.query.search
+    const search=req.query.search||''
 
     const skip=(page-1)*limit
 
-    const where = search
+     const where = search
       ? {
           OR: [
+            // Order fields
+            {
+              orderNumber: { contains: search, mode: "insensitive" },
+            },
+            {
+              title: { contains: search, mode: "insensitive" },
+            },
+            {
+              status: { contains: search, mode: "insensitive" },
+            },
+            {
+              createdBy: { contains: search, mode: "insensitive" },
+            },
+            {
+              updatedBy: { contains: search, mode: "insensitive" },
+            },
+
+            // Customer fields
             {
               customer: {
-                name: {
-                  contains: search,
-                  mode: "insensitive", // case-insensitive search
-                },
+                firstName: { contains: search, mode: "insensitive" },
               },
             },
             {
-              id: {
-                contains: search,
-                mode: "insensitive",
+              customer: {
+                lastName: { contains: search, mode: "insensitive" },
               },
             },
+            {
+              customer: {
+                email: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              customer: {
+                mobile: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              customer: {
+                mobile2: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              customer: {
+                company: { contains: search, mode: "insensitive" },
+              },
+            },
+
+            // Product title inside items
             {
               items: {
                 some: {
                   product: {
-                    name: {
-                      contains: search,
-                      mode: "insensitive",
-                    },
+                    title: { contains: search, mode: "insensitive" },
                   },
                 },
               },
@@ -462,6 +495,7 @@ const getAllPaginationOrders = async(req,res)=>{
           ],
         }
       : {};
+
     
     const orders = await prisma.order.findMany({
       where,
