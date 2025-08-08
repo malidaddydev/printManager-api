@@ -426,10 +426,45 @@ const getAllPaginationOrders = async(req,res)=>{
 
     const page=parseInt(req.query.page)||1
     const limit=parseInt(req.query.limit)||10
+    const search=req.query.search
 
     const skip=(page-1)*limit
+
+    const where = search
+      ? {
+          OR: [
+            {
+              customer: {
+                name: {
+                  contains: search,
+                  mode: "insensitive", // case-insensitive search
+                },
+              },
+            },
+            {
+              id: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              items: {
+                some: {
+                  product: {
+                    name: {
+                      contains: search,
+                      mode: "insensitive",
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        }
+      : {};
     
     const orders = await prisma.order.findMany({
+      where,
       skip,
     take:limit,
       include: {
