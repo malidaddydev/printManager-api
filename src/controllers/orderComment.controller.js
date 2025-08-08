@@ -100,7 +100,7 @@ exports.createComment = async (req, res) => {
       subject: emailContent.subject,
       html: emailContent.html,
       text: emailContent.text
-    };
+    }
 
     const result = await transporter.sendMail(mailOptions);
     console.log('Approval request email sent:', result.messageId);
