@@ -12,8 +12,8 @@ const createEmailTransporter = () => {
   });
 };
 
-const generateFileApprovalEmail = ( customer, order) => {
-  const approvalUrl = `https://elipsestudio.com/CustomerChecker/customercheckpage.html`;
+const generateFileApprovalEmail = ( comment,customer, order) => {
+  const commentUrl = `https://elipsestudio.com/CustomerChecker/customercheckpage.html`;
 
   return {
    subject: `New Comment Added to Your Order`,
@@ -39,7 +39,7 @@ text: `New Comment on Your Order - ${order.orderNumber}
 Dear ${customer.name},
 
 A new comment has been added to your order:
-- Comment: ${comment.text}
+- Comment: ${comment.commentText}
 - Added At: ${new Date(comment.createdAt).toLocaleString()}
 
 You can use this token to view and respond: ${order.token}
@@ -92,7 +92,7 @@ exports.createComment = async (req, res) => {
 
     if (!is_internal) {
       const transporter = createEmailTransporter();
-    const emailContent = generateFileApprovalEmail( order.customer, order);
+    const emailContent = generateFileApprovalEmail(newComment, order.customer, order);
 
     const mailOptions = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
