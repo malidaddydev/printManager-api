@@ -35,7 +35,7 @@ const generateFileApprovalEmail = (file, customer, order) => {
     `,
     text: `File Approval Request - ${file.fileName}
 
-Dear ${customer.name},
+Dear ${customer.firstName} ${customer.lastName},
 
 Please review and approve the file for your order ${order.orderNumber}:
 - File: ${file.fileName}
