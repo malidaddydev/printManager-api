@@ -419,6 +419,63 @@ const getAllOrders = async(req,res)=>{
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
+
+const getAllPaginationOrders = async(req,res)=>{
+  try {
+
+    const page=parseInt(req.query.page)||1
+    const limit=parseInt(req.query.page)||10
+
+    const skip=(page-1)*limit
+    
+    const orders = await prisma.order.findMany({
+      skip,
+    take:limit,
+      include: {
+        customer: true, // Get Customer details
+        items: {
+          include: {
+            product: {
+              include: {
+                files:true,
+                service: {
+                  include: {
+                    workflow: {
+                      include: {
+                        stages: {
+                          include:{
+                            stage:true
+                          }
+                        }, // Workflow stages
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            files:true,
+            sizeQuantities: true,
+            comments: true,
+          },
+        },
+        files: true,
+        comments: true,
+      }
+      
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+
+
+
+
 const getSingleOrders = async(req,res)=>{
   try {
     const orderId=req.params.id
@@ -731,7 +788,7 @@ const orderFromToken=async (req,res) => {
 
 
 module.exports = {
-  createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder,orderFromToken,getProductSizes,cancelOrder                                                                                 
+  createOrder,getAllOrders,getProductColors,getSingleOrders,updateOrder,deleteOrder,orderFromToken,getProductSizes,cancelOrder,getAllPaginationOrders                                                                                 
 };
 
 
