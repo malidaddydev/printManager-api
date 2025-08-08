@@ -96,7 +96,7 @@ exports.createComment = async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-      to: file.order.customer.email,
+      to: order.customer.email,
       subject: emailContent.subject,
       html: emailContent.html,
       text: emailContent.text
