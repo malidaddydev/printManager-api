@@ -433,41 +433,41 @@ const getAllPaginationOrders = async(req,res)=>{
      const where = search
   ? {
       OR: [
-        { orderNumber: { contains: search, mode: 'insensitive' } },
-        { title: { contains: search, mode: 'insensitive' } },
-        { status: { contains: search, mode: 'insensitive' } },
-        { createdBy: { contains: search, mode: 'insensitive' } },
-        { updatedBy: { contains: search, mode: 'insensitive' } },
+        { orderNumber: { contains: search } },
+        { title: { contains: search } },
+        { status: { contains: search } },
+        { createdBy: { contains: search } },
+        { updatedBy: { contains: search } },
 
         // Related model: customer
         {
           customer: {
-            firstName: { contains: search, mode: 'insensitive' }
+            firstName: { contains: search }
           }
         },
         {
           customer: {
-            lastName: { contains: search, mode: 'insensitive' }
+            lastName: { contains: search }
           }
         },
         {
           customer: {
-            email: { contains: search, mode: 'insensitive' }
+            email: { contains: search }
           }
         },
         {
           customer: {
-            mobile: { contains: search, mode: 'insensitive' }
+            mobile: { contains: search }
           }
         },
         {
           customer: {
-            mobile2: { contains: search, mode: 'insensitive' }
+            mobile2: { contains: search }
           }
         },
         {
           customer: {
-            company: { contains: search, mode: 'insensitive' }
+            company: { contains: search }
           }
         },
 
