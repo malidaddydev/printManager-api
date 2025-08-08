@@ -51,7 +51,7 @@ Your Company Team`
 
   };
 };
-const generateWorkFlowChangeEmail = (orderItem, customer, order) => {
+const generateWorkFlowChangeEmail = (orderItem, customer, order,currentStage) => {
   const orderItemUrl = `https://elipsestudio.com/CustomerChecker/customercheckpage.html`;
 
   return {
@@ -64,7 +64,7 @@ const generateWorkFlowChangeEmail = (orderItem, customer, order) => {
         <ul>
           <li><strong>Product:</strong> ${orderItem.product?.title || "N/A"}</li>
           <li><strong>Color:</strong> ${orderItem.color || "N/A"}</li>
-          <li><strong>New Stage:</strong> ${orderItem.currentStage || "N/A"}</li>
+          <li><strong>New Stage:</strong> ${currentStage || "N/A"}</li>
           
         </ul>
         <p>You can use this token to view the order details:</p>
@@ -137,7 +137,7 @@ const workflowStatusChange=async(req,res)=>{
     });
 
     const transporter = createEmailTransporter();
-    const emailContent = generateWorkFlowChangeEmail(existingOrderItem, existingOrderItem.order.customer, existingOrderItem.order);
+    const emailContent = generateWorkFlowChangeEmail(existingOrderItem, existingOrderItem.order.customer, existingOrderItem.order,currentStage);
 
     const mailOptions = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
@@ -170,6 +170,8 @@ const workflowStatusChange=async(req,res)=>{
 
 
 const orderStatusChange=(req,res)=>{
+
+    
 
 }
 

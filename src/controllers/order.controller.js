@@ -573,36 +573,74 @@ const getSingleOrders = async(req,res)=>{
 
 
 
+const generateOrderStatusChangeEmail = (customer, order) => { 
+  const orderUrl = `https://elipsestudio.com/CustomerChecker/customercheckpage.html`;
 
+  return {
+    subject: `Order Status Updated - ${order.orderNumber}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+        <h2>Order Status Update</h2>
+        <p>Dear ${customer.name},</p>
+        <p>The status of your order <strong>${order.orderNumber}</strong> has been updated.</p>
+        <ul>
+          <li><strong>New Status:</strong> ${order.status}</li>
+          <li><strong>Updated At:</strong> ${new Date().toLocaleString()}</li>
+          
+        </ul>
+        <p>You can use this token to view your order status:</p>
+        <p style="font-weight: bold; font-size: 16px; color: #007cba;">${order.token}</p>
+        <p>Click the link below to view your order details:</p>
+        <a href="${orderUrl}" style="display:inline-block;padding:10px 20px;background:#007cba;color:#fff;text-decoration:none;border-radius:5px;">View Order</a>
+        <p>If you have any questions, feel free to contact us.</p>
+        <p>Best regards,<br>Your Company Team</p>
+      </div>
+    `,
+    text: `Order Status Updated - ${order.orderNumber}
+
+Dear ${customer.name},
+
+The status of your order ${order.orderNumber} has been updated.
+
+- New Status: ${order.status}
+- Updated At: ${new Date().toLocaleString()}
+
+
+You can use this token to view your order status: ${order.token}
+
+View your order here: ${orderUrl}
+
+Best regards,
+Your Company Team`
+  };
+};
 
 
 const updateOrder = async (req, res) => {
   try {
-    const orderId = parseInt(req.params.id); // Order ID from URL param
+    const orderId = parseInt(req.params.id);
     const {
       customerId,
       orderNumber,
       title,
-      status ,
+      status,
       startDate,
       dueDate,
       notes,
       updatedBy
     } = req.body;
 
+    // Update order
     const updatedOrder = await prisma.order.update({
-    where: { id: orderId },
-    data: {
+      where: { id: orderId },
+      data: {
         customerId: customerId ? parseInt(customerId) : undefined,
-        
         title,
         status,
         startDate: startDate ? new Date(startDate) : undefined,
         dueDate: dueDate ? new Date(dueDate) : undefined,
         notes,
         updatedBy
-        
-       
       },
       include: {
         files: true,
@@ -616,20 +654,41 @@ const updateOrder = async (req, res) => {
       }
     });
 
+    // Add activity log
+    await prisma.activityLog.create({
+      data: {
+        orderId,
+        action: `Order Updated`,
+        performedBy: updatedBy
+      }
+    });
 
-  const addOrderIntoActivityLog=await prisma.activityLog.create({
-  data: {
-    orderId:orderId,
-    
-    action: `Order Updated By"`,
-    performedBy: updatedBy
-  }
-});
+    // Send email if status changed
+    if (status) {
+      const transporter = createEmailTransporter();
+      const emailContent = generateOrderStatusChangeEmail(
+        updatedOrder.customer,
+        updatedOrder
+      );
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+        to: updatedOrder.customer.email, // ✅ fixed variable
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text
+      };
+
+      // ✅ Actually send the email
+      await transporter.sendMail(mailOptions);
+    }
 
     res.status(200).json(updatedOrder);
   } catch (err) {
-    console.error('Error updating order:', err);
-    res.status(500).json({ message: 'Internal server error', error: err.message });
+    console.error("Error updating order:", err);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: err.message });
   }
 };
 
