@@ -10,6 +10,8 @@ router.post('/create', customerController.createCustomer);
 
 // Get all customers or a single customer by ID
 router.get('/', customerController.getAllCustomers);
+router.get('/pagination', customerController.getAllPaginationCustomers);
+
 router.get('/:id', customerController.Customer);
 router.put('/:id', customerController.updateCustomer);
 router.delete('/:id', customerController.deleteCustomer);
