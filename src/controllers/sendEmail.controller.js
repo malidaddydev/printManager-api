@@ -12,45 +12,7 @@ const createEmailTransporter = () => {
   });
 };
 
-const generateOrderStatusChangeEmail = ( comment,customer, order) => {
-  const commentUrl = `https://elipsestudio.com/CustomerChecker/customercheckpage.html`;
 
-  return {
-   subject: `New Comment Added to Your Order`,
-html: `
-  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
-    <h2>New Comment on Your Order</h2>
-    <p>Dear ${customer.name},</p>
-    <p>A new comment has been added to your order <strong>${order.orderNumber}</strong>.</p>
-    <ul>
-      <li><strong>Comment:</strong> ${comment.text}</li>
-      <li><strong>Added At:</strong> ${new Date(comment.createdAt).toLocaleString()}</li>
-    </ul>
-    <p>You can use this token to view and respond to the comment:</p>
-    <p style="font-weight: bold; font-size: 16px; color: #007cba;">${order.token}</p>
-    <p>Click the link below to view your order and reply to the comment:</p>
-    <a href="${commentUrl}" style="display:inline-block;padding:10px 20px;background:#007cba;color:#fff;text-decoration:none;border-radius:5px;">View Comment</a>
-    <p>If you have any questions, feel free to contact us.</p>
-    <p>Best regards,<br>Your Company Team</p>
-  </div>
-`,
-text: `New Comment on Your Order - ${order.orderNumber}
-
-Dear ${customer.name},
-
-A new comment has been added to your order:
-- Comment: ${comment.commentText}
-- Added At: ${new Date(comment.createdAt).toLocaleString()}
-
-You can use this token to view and respond: ${order.token}
-
-View it here: ${commentUrl}
-
-Best regards,
-Your Company Team`
-
-  };
-};
 const generateWorkFlowChangeEmail = (orderItem, customer, order,currentStage) => {
   const orderItemUrl = `https://elipsestudio.com/CustomerChecker/customercheckpage.html`;
 
@@ -59,7 +21,7 @@ const generateWorkFlowChangeEmail = (orderItem, customer, order,currentStage) =>
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
         <h2>Workflow Stage Changed</h2>
-        <p>Dear ${customer.name},</p>
+        <p>Dear ${customer.firstName} ${customer.lastName},</p>
         <p>The workflow stage for one of your items in order <strong>${order.orderNumber}</strong> has been updated.</p>
         <ul>
           <li><strong>Product:</strong> ${orderItem.product?.title || "N/A"}</li>
@@ -77,7 +39,7 @@ const generateWorkFlowChangeEmail = (orderItem, customer, order,currentStage) =>
     `,
     text: `Workflow Stage Changed - Order ${order.orderNumber}
 
-Dear ${customer.name},
+Dear ${customer.firstName} ${customer.lastName},
 
 The workflow stage for one of your items in order ${order.orderNumber} has been updated.
 

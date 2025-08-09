@@ -581,7 +581,7 @@ const generateOrderStatusChangeEmail = (customer, order) => {
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
         <h2>Order Status Update</h2>
-        <p>Dear ${customer.name},</p>
+        <p>Dear ${customer.firstName} ${customer.lastName},</p>
         <p>The status of your order <strong>${order.orderNumber}</strong> has been updated.</p>
         <ul>
           <li><strong>New Status:</strong> ${order.status}</li>
@@ -598,7 +598,7 @@ const generateOrderStatusChangeEmail = (customer, order) => {
     `,
     text: `Order Status Updated - ${order.orderNumber}
 
-Dear ${customer.name},
+Dear ${customer.firstName} ${customer.lastName},
 
 The status of your order ${order.orderNumber} has been updated.
 
@@ -770,7 +770,7 @@ const generateCancellationEmail = (customer, order) => {
     `,
     text: `Order Cancellation Notice - ${order.orderNumber}
 
-Dear ${customer.name},
+Dear ${customer.firstName} ${customer.lastName},
 
 We regret to inform you that your order ${order.orderNumber} has been cancelled.
 
