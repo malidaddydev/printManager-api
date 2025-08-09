@@ -41,14 +41,14 @@ app.use('/uploads', express.static(path.join(__dirname, '../public/uploads'))); 
 // Routes
 // app.use('/api/users', authenticate, usersRoutes);
 // app.use('/api/users', authenticate, usersRoutes);
-app.use('/api/products',authenticate, productRoutes);
+app.use('/api/products', productRoutes);
 app.use('/api/workflows', authenticate,workflowRoutes);
-app.use('/api/services',authenticate, serviceRoutes);
+app.use('/api/services', serviceRoutes);
 app.use('/api/stages', authenticate,stageRoutes);
 app.use('/api/users', authenticate,usersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', authenticate,customerRoutes);
-app.use('/api/orders',authenticate,orderRoutes);
+app.use('/api/orders', authenticate,orderRoutes);
 app.use('/api/orderFiles', authenticate,orderFileRoutes);
 app.use('/api/orderItems', authenticate,orderItemRoutes);
 app.use('/api/sizeQuantities', authenticate,sizeQuantitiesRoutes);
@@ -57,8 +57,8 @@ app.use('/api', uploadRoutes);
 app.use('/api/activitylogs', authenticate,activityLogRoutes);
 app.use('/api/customerApprovals',authenticate,customerApprovalRoutes );
 app.use('/api/notifications',authenticate,notificationRoutes );
-app.use('/api/organization-settings', authenticate,orgRoutes);
-app.use('/api/customer-order', authenticate,customerOrderRoutes);
+app.use('/api/organization-settings',orgRoutes);
+app.use('/api/customer-order',customerOrderRoutes);
 app.use('/api/sendEmail', authenticate,sendEmailRoutes);
 
 
