@@ -49,7 +49,7 @@ exports.loginUser = async (req, res) => {
     });
 
     // 5. Return user data (without password) and token
-    const { password_hash, ...userData } = user;
+    const { passwordHash, ...userData } = user;
     res.status(200).json({
       ...userData,
       token
