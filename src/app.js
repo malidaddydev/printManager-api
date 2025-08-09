@@ -56,7 +56,7 @@ app.use('/api/comments', orderCommentRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/activitylogs', activityLogRoutes);
 app.use('/api/customerApprovals',customerApprovalRoutes );
-app.use('/api/notifications',notificationRoutes );
+app.use('/api/notifications',authenticate,notificationRoutes );
 app.use('/api/organization-settings', orgRoutes);
 app.use('/api/customer-order', customerOrderRoutes);
 app.use('/api/sendEmail', sendEmailRoutes);
