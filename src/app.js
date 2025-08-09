@@ -46,7 +46,7 @@ app.use('/api/workflows', authenticate,workflowRoutes);
 app.use('/api/services',authenticate, serviceRoutes);
 app.use('/api/stages', authenticate,stageRoutes);
 app.use('/api/users', authenticate,usersRoutes);
-app.use('/api/auth',authenticate, authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/customers', authenticate,customerRoutes);
 app.use('/api/orders',authenticate,orderRoutes);
 app.use('/api/orderFiles', authenticate,orderFileRoutes);
