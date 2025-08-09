@@ -475,7 +475,8 @@ const getAllPaginationOrders = async(req,res)=>{
       ]
     }
   : {};
-
+    const ordersTot = await prisma.order.count();
+    const frontendPages=ordersTot/limit
     
     const orders = await prisma.order.findMany({
       where,
@@ -514,7 +515,7 @@ const getAllPaginationOrders = async(req,res)=>{
       
     });
 
-    res.status(200).json(orders);
+    res.status(200).json({orders,frontendPages,ordersTot});
   } catch (error) {
     console.error("Error fetching orders:", error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
