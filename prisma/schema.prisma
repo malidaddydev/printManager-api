@@ -145,7 +145,7 @@ model Stage {
   id        Int               @id @default(autoincrement())
   state     String
   name      String
-  team      String
+  position      Int?
   color     String
   days      Int
   workflows WorkflowStage[]   // Join table

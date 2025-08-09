@@ -4,17 +4,17 @@ const prisma = new PrismaClient();
 // Create a Stage
 exports.createStage = async (req, res) => {
   try {
-    const { state, name, team, color, days, createdBy } = req.body;
+    const { state, name, position, color, days, createdBy } = req.body;
 
-    if (!state || !name || !team || !color || typeof days !== 'number') {
-      return res.status(400).json({ message: "State, name, team, color, and days are required" });
+    if (!state || !name || !position || !color || typeof days !== 'number') {
+      return res.status(400).json({ message: "State, name, position, color, and days are required" });
     }
 
     const stage = await prisma.stage.create({
       data: {
         state,
         name,
-        team,
+        position,
         color,
         days,
         createdBy
@@ -82,7 +82,7 @@ exports.getStageById = async (req, res) => {
 // Update Stage
 exports.updateStage = async (req, res) => {
   const { id } = req.params;
-  const { state, name, team, color, days, updatedBy } = req.body;
+  const { state, name, position, color, days, updatedBy } = req.body;
 
   try {
     const updatedStage = await prisma.stage.update({
@@ -90,7 +90,7 @@ exports.updateStage = async (req, res) => {
       data: {
         state,
         name,
-        team,
+        position,
         color,
         days,
         updatedBy
